@@ -14,7 +14,9 @@ export default {
 const Template: ComponentStory<typeof Draggable> = ({ children, ...props }) => {
     return (
         <>
-            <Draggable {...props}>{children}</Draggable>
+            <Draggable axis='y' {...props}>
+                {children}
+            </Draggable>
             <Droppable>{(status) => 'hola'}</Droppable>
             dasdasdasda
         </>

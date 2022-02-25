@@ -4,6 +4,8 @@ import { FileRejection } from 'react-dropzone'
 export type DropzoneStatus = {
     accepted: boolean
     rejected: boolean
+    overed: boolean
+    dragged: boolean
 }
 
 export type DragFileEvent = {

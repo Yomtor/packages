@@ -20,7 +20,10 @@ export const Draggable: React.FC<DraggableProps> = ({ children, ...props }) => {
 
         document.dispatchEvent(new Event('onDragStart', { bubbles: true }))
 
-        offset.current = { x: -data.x, y: -data.y }
+        offset.current = {
+            x: ((props.axis === 'both' || props.axis === 'x') && -data.x) || 0,
+            y: ((props.axis === 'both' || props.axis === 'y') && -data.y) || 0
+        }
 
         props.onStart && props.onStart(event, data)
     }
@@ -72,6 +75,7 @@ export const Draggable: React.FC<DraggableProps> = ({ children, ...props }) => {
                 onStart={startHandler}
                 positionOffset={offset.current}
                 disabled={props.disabled}
+                {...props}
             >
                 <div ref={handlerRef} className={classes.handler}>
                     {children}
@@ -86,4 +90,6 @@ export const Draggable: React.FC<DraggableProps> = ({ children, ...props }) => {
     )
 }
 
-Draggable.defaultProps = {}
+Draggable.defaultProps = {
+    move: true
+}

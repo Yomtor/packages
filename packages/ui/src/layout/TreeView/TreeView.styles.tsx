@@ -15,6 +15,8 @@ const getDroppers = (theme: YomtorTheme): CSSObject => ({
     right: 0,
     boxSizing: 'border-box',
     left: 0,
+    background: 'rgba(255, 0, 0, 0.2)',
+    zIndex: 1,
     '& > div': { ...getIndicators(theme) }
 })
 
@@ -65,7 +67,7 @@ export const TreeViewStyles = createStyles<Classes, TreeViewProps>((theme) => ({
         borderWidth: 1,
         borderStyle: 'solid',
         paddingRight: 10,
-        transform: 'none !important',
+        // transform: 'none !important',
         boxSizing: 'border-box',
 
         borderColor: 'transparent',
