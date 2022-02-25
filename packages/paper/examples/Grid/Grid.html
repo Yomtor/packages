@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Grids</title>
+        <link rel="stylesheet" href="../css/style.css" />
+        <script type="text/javascript" src="../../dist/index.js"></script>
+        <script type="text/paperscript" canvas="canvas">
+            var empty = new Artboard({
+                from: 605,
+                to: 1000,
+                fillColor: 'blue',
+            });
+
+            empty.grid = new Grid('red', 20, 1);
+        </script>
+    </head>
+    <body>
+        <canvas id="canvas" resize></canvas>
+    </body>
+</html>

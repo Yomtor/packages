@@ -1,0 +1,35 @@
+{
+    "name": "@yomyer/yomtor",
+    "private": true,
+    "version": "0.0.0",
+    "main": "index.js",
+    "license": "SEE LICENSE IN LICENSE",
+    "workspaces": [
+      "packages/*",
+      "examples/*"
+    ],
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/yomyer/yomtor.git"
+    },
+    "bugs": {
+      "url": "https://github.com/yomyer/yomtor/issues"
+    },
+    "author": {
+      "email": "info@yomyer.com",
+      "name": "Yomyer New Line S.L.",
+      "url": "https://www.yomyer.com"
+    },
+    "maintainers": [
+      {
+        "email": "info@yomyer.com",
+        "name": "Yomyer New Line S.L.",
+        "url": "https://www.yomyer.com"
+      }
+    ],
+    "engines": {
+      "node": ">=14.0.0",
+      "npm": ">=6.10.0"
+    },
+    "scripts": {}
+  }
