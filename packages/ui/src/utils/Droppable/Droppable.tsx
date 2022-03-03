@@ -154,7 +154,7 @@ export const Droppable: React.FC<DroppableProps> = ({
             drop && element.current.removeEventListener('onDropClear', clear)
             stop && element.current.removeEventListener('onDrop', drop)
         }
-    })
+    }, [])
 
     const externalDisabled = disabled || loading || !external
     const { getRootProps, getInputProps, isDragAccept, isDragReject } =

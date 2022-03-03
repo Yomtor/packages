@@ -33,7 +33,7 @@ export const Draggable: React.FC<DraggableProps> = ({
         { name: 'Draggable' }
     )
 
-    const createPhatom = () => {
+    const updatePanthom = () => {
         const { top, left, width, height } =
             handlerRef.current.getBoundingClientRect()
 
@@ -41,8 +41,6 @@ export const Draggable: React.FC<DraggableProps> = ({
         phantomRef.current.style.left = `${left}px`
         phantomRef.current.style.width = `${width}px`
         phantomRef.current.style.height = `${height}px`
-
-        phantomRef.current.parentNode.removeChild(phantomRef.current)
     }
 
     useEffect(() => {
@@ -59,7 +57,8 @@ export const Draggable: React.FC<DraggableProps> = ({
     }, [props.phantom])
 
     useEffect(() => {
-        createPhatom()
+        phantomRef.current.parentNode.removeChild(phantomRef.current)
+
         const element = phantomRef.current
         const transitionend = () => {
             setAnimated(false)
@@ -76,7 +75,7 @@ export const Draggable: React.FC<DraggableProps> = ({
     }, [])
 
     useEffect(() => {
-        if (dragging) document.body.append(phantomRef.current)
+        if (dragging && props.move) document.body.append(phantomRef.current)
     }, [dragging])
 
     const intersect = (target: HTMLElement) => {
@@ -111,14 +110,17 @@ export const Draggable: React.FC<DraggableProps> = ({
                 new CustomEvent('onDrop', { bubbles: true, detail: props })
             )
         }
+
         document.dispatchEvent(
             new CustomEvent('onDragStop', { bubbles: true, detail: props })
         )
-        nodes.current.forEach((n) =>
+
+        nodes.current.forEach((n) => {
             n.dispatchEvent(
                 new CustomEvent('onDropClear', { bubbles: true, detail: props })
             )
-        )
+        })
+
         nodes.current = []
 
         props.onStop && props.onStop(event, data)
@@ -129,6 +131,7 @@ export const Draggable: React.FC<DraggableProps> = ({
     }
 
     const dragHandler = (event: DraggableEvent, data: DraggableData) => {
+        updatePanthom()
         distance.current += Math.abs(data.deltaX) + Math.abs(data.deltaY)
 
         if (distance.current < start) return
