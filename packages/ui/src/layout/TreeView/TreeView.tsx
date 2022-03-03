@@ -4,24 +4,22 @@ import { TreeViewProps } from './TreeView.props'
 import { TreeNode } from './TreeNode'
 import { TreeViewContext, TreeViewContextProps } from './TreeViewContext'
 import { DraggableData, DraggableEvent } from 'react-draggable'
+import { DropEvent } from '../../utils/Droppable/Droppable.props'
 
-const TreeViewItem: React.FC<TreeViewProps> = ({
+const TreeViewWrapper: React.FC<TreeViewProps> = ({
     nodeComponent: TreeNode,
     ...props
 }) => {
     const context = useContext(TreeViewContext)
     const { classes } = TreeViewStyles()
 
-    const dargStopHandler = (event: DraggableEvent, data: DraggableData) => {
-        const { dragging, dragNode, dropNode, position } = context
+    const dropHandler = (data: DropEvent) => {
+        const { dragNode, dropNode, position } = context
+        props.sortabled &&
+            dropNode &&
+            props.onSort({ dragNode, dropNode, position })
 
-        if (dragging) {
-            props.onDragStop(event, data)
-            props.sortabled &&
-                dropNode &&
-                props.onSort({ dragNode, dropNode, position })
-            props.draggabled && props.onDrop({ node: dragNode })
-        }
+        props.onDrop(data)
     }
 
     return (
@@ -33,11 +31,11 @@ const TreeViewItem: React.FC<TreeViewProps> = ({
             <div className={classes.wrapper}>
                 {props.data.map((child, key) => (
                     <TreeNode
+                        {...props}
                         key={key}
                         index={key}
-                        {...props}
                         data={child}
-                        onDragStop={dargStopHandler}
+                        onDrop={dropHandler}
                         classes={classes}
                     />
                 ))}
@@ -66,7 +64,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
         props.onDragStart(event, data)
     }
 
-    const dargStopHandeler = (event: DraggableEvent, data: DraggableData) => {
+    const dragStopHandeler = (event: DraggableEvent, data: DraggableData) => {
         setContext({
             ...context,
             dragging: false,
@@ -83,9 +81,9 @@ export const TreeView: React.FC<TreeViewProps> = ({
 
     return (
         <TreeViewContext.Provider value={context}>
-            <TreeViewItem
+            <TreeViewWrapper
                 {...props}
-                onDragStop={dargStopHandeler}
+                onDragStop={dragStopHandeler}
                 onDragStart={dragStartHandler}
             />
         </TreeViewContext.Provider>

@@ -4,8 +4,10 @@ import { DroppableProps } from './Droppable.props'
 type Classes = 'root' | 'over' | 'dragging' | 'error'
 
 export const DroppableStyles = createStyles<Classes, DroppableProps>(
-    (theme) => ({
-        root: {},
+    (_, { disabled }) => ({
+        root: {
+            userSelect: !disabled ? 'none' : null
+        },
         dragging: {},
         over: {},
         error: {}

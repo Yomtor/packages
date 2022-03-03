@@ -3,13 +3,13 @@ import { TreeView } from './TreeView'
 import { ComponentStory, ComponentMeta } from '@storybook/react'
 import { LockIcon } from '../../icon/Lock/Lock'
 import { TreeNodeData, TreeNodeEvent } from './TreeNode/TreeNode.props'
+import { Block } from '../Block'
+import { Droppable } from '../../utils/Droppable/Droppable'
 
 export default {
     title: 'Atoms/Layout/TreeView',
     component: TreeView,
-    argTypes: {
-        // mySelectProp: { options: ['Hello', 'World'], control: { type: 'select' } },
-    }
+    argTypes: {}
 } as ComponentMeta<typeof TreeView>
 
 const Template: ComponentStory<typeof TreeView> = ({ ...props }) => {
@@ -20,16 +20,29 @@ const Template: ComponentStory<typeof TreeView> = ({ ...props }) => {
     }
 
     return (
-        <div style={{ maxWidth: 400, height: 600 }}>
-            <TreeView
-                {...props}
-                onClick={clickHandler}
-                onSort={({ dropNode, dragNode, position }) =>
-                    console.log(dropNode, dragNode, position)
-                }
-                onDrag={() => {}}
-            />
-        </div>
+        <Block>
+            <div style={{ maxWidth: 400, height: 600 }}>
+                <TreeView {...props} onClick={clickHandler} />
+            </div>
+            <Droppable external>
+                {(status) => (
+                    <div
+                        style={{
+                            height: 100,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderRadius: 5,
+                            background: status.overed
+                                ? 'rgba(0, 255, 0, 0.4)'
+                                : 'rgba(0, 0, 0, 0.9)'
+                        }}
+                    >
+                        Drop Me
+                    </div>
+                )}
+            </Droppable>
+        </Block>
     )
 }
 

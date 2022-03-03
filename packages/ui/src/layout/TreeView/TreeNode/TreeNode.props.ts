@@ -1,5 +1,6 @@
 import { MouseEvent } from 'react'
 import { DraggableEventHandler } from 'react-draggable'
+import { DropEvent } from '../../../utils/Droppable/Droppable.props'
 
 export type TreeNodeData<T = unknown> = {
     name: string
@@ -38,6 +39,7 @@ export type TreeNodeEvents<T = unknown> = {
     onDragStart?: DraggableEventHandler
     onDragStop?: DraggableEventHandler
     onDrag?: DraggableEventHandler
+    onDrop?: (event?: DropEvent) => void
 
     editabled?: boolean
     parentUpdate?: (data: Partial<TreeNodeData<T>>) => void

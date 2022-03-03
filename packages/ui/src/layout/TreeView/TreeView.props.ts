@@ -1,5 +1,8 @@
 import { DraggableEventHandler } from 'react-draggable'
+import { DropEvent } from '../../utils/Droppable/Droppable.props'
 import { TreeNodeData, TreeNodeEvents } from './TreeNode/TreeNode.props'
+
+export type TreeViewPosition = 'in' | 'below' | 'above'
 
 export type TreeViewProps<T = any> = {
     data: TreeNodeData<T>[]
@@ -11,10 +14,10 @@ export type TreeViewProps<T = any> = {
     onSort?: (data?: {
         dragNode: T
         dropNode: T
-        position: 'above' | 'below' | 'in'
+        position: TreeViewPosition
     }) => void
-    onDrop?: (data?: { node: T }) => void
     onDragStart?: DraggableEventHandler
     onDragStop?: DraggableEventHandler
     onDrag?: DraggableEventHandler
+    onDrop?: (event?: DropEvent) => void
 } & TreeNodeEvents<T>

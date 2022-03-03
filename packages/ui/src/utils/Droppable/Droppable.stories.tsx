@@ -1,21 +1,72 @@
 import React from 'react'
 import { Droppable } from './Droppable'
 import { ComponentStory, ComponentMeta } from '@storybook/react'
+import { Draggable } from '../Draggable'
+import { DropEvent } from './Droppable.props'
 
 export default {
     title: 'Atoms/Utils/Droppable',
     component: Droppable,
     argTypes: {
-        // myBooleanProp: { control: { type: 'boolean' } },
+        name: { control: 'text' }
         // mySelectProp: { options: ['Hello', 'World'], control: { type: 'select' } },
     }
 } as ComponentMeta<typeof Droppable>
 
-const Template: ComponentStory<typeof Droppable> = ({ children, ...props }) => {
+const Template: ComponentStory<any> = ({ children, name, ...props }) => {
     return (
         <>
+            <Draggable data={{ name }}>
+                <span
+                    style={{
+                        height: 40,
+                        width: 150,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: 5,
+                        cursor: 'pointer',
+                        background: 'rgba(255, 255, 255, 0.3)'
+                    }}
+                >
+                    Drag Me
+                </span>
+            </Draggable>
+            <Draggable>
+                <span
+                    style={{
+                        height: 40,
+                        width: 150,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: 5,
+                        cursor: 'pointer',
+                        background: 'rgba(255, 255, 255, 0.3)'
+                    }}
+                >
+                    Drag Me
+                </span>
+            </Draggable>
             <Droppable {...props}>
-                {(status) => <>test{status.accepted ? 'se' : 'no'}</>}
+                {(status) => (
+                    <div
+                        style={{
+                            height: 100,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderRadius: 5,
+                            background: status.accepted
+                                ? 'rgba(0, 255, 0, 0.4)'
+                                : status.rejected
+                                ? 'rgba(255, 0, 0, 0.4)'
+                                : 'rgba(0, 0, 0, 0.9)'
+                        }}
+                    >
+                        Drop Me
+                    </div>
+                )}
             </Droppable>
         </>
     )
@@ -24,6 +75,11 @@ const Template: ComponentStory<typeof Droppable> = ({ children, ...props }) => {
 export const Playground = Template.bind({})
 
 Playground.args = {
-    accept: ['png'],
-    multiple: true
+    name: 'acceptme',
+    accept: [
+        'image/png',
+        (event: DropEvent) => event.props.data?.name === 'acceptme'
+    ],
+    multiple: true,
+    external: true
 }

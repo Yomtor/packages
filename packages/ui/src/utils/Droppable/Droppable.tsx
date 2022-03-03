@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { DroppableStyles } from './Droppable.styles'
-import { DroppableProps } from './Droppable.props'
+import { DropEvent, DroppableProps } from './Droppable.props'
 import { useDropzone } from 'react-dropzone'
+import { isArray, isFunction, isString, isUndefined } from 'lodash'
 
 /**
  * Description
@@ -13,7 +14,6 @@ export const Droppable: React.FC<DroppableProps> = ({
     onEnter,
     onLeave,
     onReject,
-    onMove,
     children,
     accept,
     maxSize = Infinity,
@@ -21,25 +21,37 @@ export const Droppable: React.FC<DroppableProps> = ({
     multiple,
     disabled,
     loading,
-    external = true,
+    external = false,
     ...props
 }) => {
     const element = useRef<HTMLDivElement>()
     const counter = useRef(0)
+    const data = useRef()
     const [dragging, setDragging] = useState<boolean>(false)
-    const [over, setOver] = useState<boolean>(false)
+    const [over, setOver] = useState<boolean>()
+    const [isDropAccept, setIsDropAccept] = useState<boolean>()
+    const [isDropReject, setIsDropReject] = useState<boolean>()
+
+    useEffect(() => {
+        if (isUndefined(over)) return
+        document.dispatchEvent(
+            new CustomEvent('onDropHover', {
+                bubbles: true,
+                detail: { over, ...props }
+            })
+        )
+    }, [over])
 
     const { classes, cx } = DroppableStyles(
         { ...props },
         { name: 'Droppable', classNames }
     )
 
-    const move = () => {
+    const move = (event: Event | File[]) => {
         if (!over) {
             setOver(true)
-            onEnter && onEnter()
-        } else {
-            onMove && onMove()
+            data.current = (event as CustomEvent).detail
+            onEnter && onEnter(createEvent(event))
         }
     }
 
@@ -49,13 +61,9 @@ export const Droppable: React.FC<DroppableProps> = ({
         setDragging(false)
     }
 
-    const drop = (data: File[] | Event) => {
-        onDrop &&
-            onDrop(
-                data instanceof Event
-                    ? { ...data, type: 'event' }
-                    : { files: data, type: 'file' }
-            )
+    const drop = (event: Event, files?: File[]) => {
+        onDrop && onDrop(createEvent(event, files))
+
         clear()
     }
 
@@ -71,18 +79,57 @@ export const Droppable: React.FC<DroppableProps> = ({
         }
     }
 
-    const enterHandler = (force?: boolean) => {
+    const enterHandler = (event: Event, force?: boolean) => {
         if (over || force) {
             setOver(true)
-            onEnter && onEnter()
+            onEnter && onEnter(createEvent(event, force))
         }
     }
-    const leaveHandler = (force?: boolean) => {
+    const leaveHandler = (event: Event, force?: boolean) => {
         if (over || force) {
             setOver(false)
-            onLeave && onLeave()
+            onLeave && onLeave(createEvent(event, force))
         }
     }
+
+    const createEvent = (
+        event: Event | File[],
+        files?: boolean | File[]
+    ): DropEvent => {
+        return {
+            type: files ? 'files' : 'event',
+            props: !files && data.current,
+            defaultEvent: !(event instanceof Array) ? event : null,
+            files: isArray(files) ? files : []
+        }
+    }
+
+    useEffect(() => {
+        if (!accept || !data.current) return
+        if (!over) {
+            setIsDropReject(false)
+            setIsDropAccept(false)
+            return
+        }
+        if (
+            accept.reduce((stack, current) => {
+                if (isString(current) || !stack) return stack
+                if (
+                    isFunction(current) &&
+                    !current({ type: 'event', props: data.current })
+                )
+                    return false
+
+                return true
+            }, true)
+        ) {
+            setIsDropReject(false)
+            setIsDropAccept(true)
+        } else {
+            setIsDropReject(true)
+            setIsDropAccept(false)
+        }
+    }, [over, accept])
 
     useEffect(() => {
         document.addEventListener('onDragStart', dragStart)
@@ -109,14 +156,16 @@ export const Droppable: React.FC<DroppableProps> = ({
         }
     })
 
+    const externalDisabled = disabled || loading || !external
     const { getRootProps, getInputProps, isDragAccept, isDragReject } =
         useDropzone({
-            onDropAccepted: (files) => drop(files),
+            onDropAccepted: (files, event: any) => drop(event, files),
             onDropRejected: (fileRejections) => onReject(fileRejections),
-            onDragEnter: () => enterHandler(true),
-            onDragLeave: () => leaveHandler(true),
-            disabled: disabled || loading || !external,
-            accept,
+            onDragEnter: (event: any) => enterHandler(event, true),
+            onDragLeave: (event: any) => leaveHandler(event, true),
+            disabled: externalDisabled,
+            accept:
+                accept && (accept.filter((item) => isString(item)) as string[]),
             multiple,
             maxSize,
             noClick: !click,
@@ -128,20 +177,22 @@ export const Droppable: React.FC<DroppableProps> = ({
             className={cx(classes.root, {
                 [classes.over]: over,
                 [classes.dragging]: dragging,
-                [classes.error]: isDragReject
+                [classes.error]: isDragReject || isDropReject
             })}
             ref={element}
-            onMouseEnter={() => enterHandler()}
-            onMouseLeave={() => leaveHandler()}
+            onMouseEnter={(event: any) => enterHandler(event)}
+            onMouseLeave={(event: any) => leaveHandler(event)}
             {...getRootProps({ ref: element })}
         >
             <input {...getInputProps()} />
-            {children({
-                accepted: isDragAccept,
-                rejected: isDragReject,
-                overed: over,
-                dragged: dragging
-            })}
+            {(isFunction(children) &&
+                children({
+                    accepted: isDragAccept || isDropAccept,
+                    rejected: isDragReject || isDropReject,
+                    overed: over,
+                    dragged: dragging
+                })) ||
+                children}
         </div>
     )
 }

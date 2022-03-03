@@ -15,7 +15,6 @@ const getDroppers = (theme: YomtorTheme): CSSObject => ({
     right: 0,
     boxSizing: 'border-box',
     left: 0,
-    background: 'rgba(255, 0, 0, 0.2)',
     zIndex: 1,
     '& > div': { ...getIndicators(theme) }
 })

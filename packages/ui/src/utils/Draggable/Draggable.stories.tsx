@@ -14,11 +14,42 @@ export default {
 const Template: ComponentStory<typeof Draggable> = ({ children, ...props }) => {
     return (
         <>
-            <Draggable axis='y' {...props}>
-                {children}
+            <Draggable {...props}>
+                <span
+                    style={{
+                        height: 40,
+                        width: 150,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: 5,
+                        cursor: 'pointer',
+                        background: 'rgba(255, 255, 255, 0.3)'
+                    }}
+                >
+                    Drag Me
+                </span>
             </Draggable>
-            <Droppable>{(status) => 'hola'}</Droppable>
-            dasdasdasda
+            <Droppable>
+                {(status) => (
+                    <div
+                        style={{
+                            height: 100,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            borderRadius: 5,
+                            background: status.overed
+                                ? 'rgba(0, 255, 0, 0.4)'
+                                : status.rejected
+                                ? 'rgba(255, 0, 0, 0.4)'
+                                : 'rgba(0, 0, 0, 0.9)'
+                        }}
+                    >
+                        Drop Me
+                    </div>
+                )}
+            </Droppable>
         </>
     )
 }
@@ -26,8 +57,10 @@ const Template: ComponentStory<typeof Draggable> = ({ children, ...props }) => {
 export const Playground = Template.bind({})
 
 Playground.args = {
-    children: 'Hola :D',
     phantom: false,
     move: true,
-    disabled: false
+    disabled: false,
+    axis: 'y',
+    throttle: 1,
+    start: 5
 }
