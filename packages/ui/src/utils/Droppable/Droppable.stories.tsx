@@ -75,6 +75,7 @@ const Template: ComponentStory<any> = ({ children, name, ...props }) => {
 export const Playground = Template.bind({})
 
 Playground.args = {
+    disabled: false,
     name: 'acceptme',
     accept: [
         'image/png',

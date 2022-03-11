@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { DroppableStyles } from './Droppable.styles'
 import { DropEvent, DroppableProps } from './Droppable.props'
 import { useDropzone } from 'react-dropzone'
-import { isArray, isFunction, isString, isUndefined } from 'lodash'
+import { isArray, isFunction, isString } from 'lodash'
 
 /**
  * Description
@@ -32,16 +32,6 @@ export const Droppable: React.FC<DroppableProps> = ({
     const [isDropAccept, setIsDropAccept] = useState<boolean>()
     const [isDropReject, setIsDropReject] = useState<boolean>()
 
-    useEffect(() => {
-        if (isUndefined(over)) return
-        document.dispatchEvent(
-            new CustomEvent('onDropHover', {
-                bubbles: true,
-                detail: { over, ...props }
-            })
-        )
-    }, [over])
-
     const { classes, cx } = DroppableStyles(
         { ...props },
         { name: 'Droppable', classNames }
@@ -56,6 +46,7 @@ export const Droppable: React.FC<DroppableProps> = ({
     }
 
     const clear = () => {
+        console.log('a')
         counter.current = 0
         setOver(false)
         setDragging(false)
@@ -63,7 +54,6 @@ export const Droppable: React.FC<DroppableProps> = ({
 
     const drop = (event: Event, files?: File[]) => {
         onDrop && onDrop(createEvent(event, files))
-
         clear()
     }
 
@@ -104,6 +94,20 @@ export const Droppable: React.FC<DroppableProps> = ({
         }
     }
 
+    const toggleEvents = (add = true) => {
+        const event = add ? 'addEventListener' : 'removeEventListener'
+        document[event]('onDragStart', dragStart)
+        document[event]('dragenter', dragStart)
+        document[event]('onDragStop', dragStop)
+        document[event]('dragleave', dragStop)
+        document[event]('drop', clear)
+
+        if (!element.current) return
+        element.current[event]('onDropMove', move)
+        element.current[event]('onDropClear', clear)
+        element.current[event]('onDrop', drop)
+    }
+
     useEffect(() => {
         if (!accept || !data.current) return
         if (!over) {
@@ -132,29 +136,12 @@ export const Droppable: React.FC<DroppableProps> = ({
     }, [over, accept])
 
     useEffect(() => {
-        document.addEventListener('onDragStart', dragStart)
-        document.addEventListener('dragenter', dragStart)
-        document.addEventListener('onDragStop', dragStop)
-        document.addEventListener('dragleave', dragStop)
-        document.addEventListener('drop', clear)
-
-        element.current.addEventListener('onDropMove', move)
-        element.current.addEventListener('onDropClear', clear)
-        element.current.addEventListener('onDrop', drop)
+        toggleEvents(!disabled)
 
         return () => {
-            document.removeEventListener('onDragStart', dragStart)
-            document.removeEventListener('dragenter', dragStart)
-            document.removeEventListener('onDragStop', dragStop)
-            document.removeEventListener('dragleave', dragStop)
-            document.removeEventListener('drop', clear)
-
-            if (!element.current) return
-            drop && element.current.removeEventListener('onDropMove', move)
-            drop && element.current.removeEventListener('onDropClear', clear)
-            stop && element.current.removeEventListener('onDrop', drop)
+            toggleEvents(false)
         }
-    }, [])
+    }, [over, disabled])
 
     const externalDisabled = disabled || loading || !external
     const { getRootProps, getInputProps, isDragAccept, isDragReject } =
@@ -183,6 +170,7 @@ export const Droppable: React.FC<DroppableProps> = ({
             onMouseEnter={(event: any) => enterHandler(event)}
             onMouseLeave={(event: any) => leaveHandler(event)}
             {...getRootProps({ ref: element })}
+            data-droppable
         >
             <input {...getInputProps()} />
             {(isFunction(children) &&

@@ -71,6 +71,7 @@
         "dist"
     ],
     "dependencies": {
+        "@radix-ui/react-scroll-area": "^0.1.4",
         "@yomtor/paper": "link:../paper",
         "@yomtor/styles": "link:../styles",
         "hotkeys-js": "^3.8.5",

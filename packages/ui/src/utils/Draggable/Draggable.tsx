@@ -44,19 +44,6 @@ export const Draggable: React.FC<DraggableProps> = ({
     }
 
     useEffect(() => {
-        if (!props.phantom) return
-
-        const animated = ({ detail: { over } }: any) => {
-            setAnimated(over)
-        }
-        document.addEventListener('onDropHover', animated)
-
-        return () => {
-            document.removeEventListener('onDropHover', animated)
-        }
-    }, [props.phantom])
-
-    useEffect(() => {
         phantomRef.current.parentNode.removeChild(phantomRef.current)
 
         const element = phantomRef.current
@@ -87,7 +74,7 @@ export const Draggable: React.FC<DraggableProps> = ({
             : true
     }
 
-    const startHandler = (event: DraggableEvent, data: DraggableData) => {
+    const startHandler = (_: DraggableEvent, data: DraggableData) => {
         document.dispatchEvent(new Event('onDragStart', { bubbles: true }))
         setOffset({
             x: -data.x || 0,
@@ -99,7 +86,6 @@ export const Draggable: React.FC<DraggableProps> = ({
     }
 
     const stopHandler = (event: DraggableEvent, data: DraggableData) => {
-        setAnimated(dragging && props.move)
         setDragging(false)
 
         distance.current = 0
@@ -108,6 +94,9 @@ export const Draggable: React.FC<DraggableProps> = ({
         if (intersect(event.target as HTMLElement)) {
             event.target.dispatchEvent(
                 new CustomEvent('onDrop', { bubbles: true, detail: props })
+            )
+            setAnimated(
+                !(event.target as HTMLElement).closest('[data-droppable]')
             )
         }
 
@@ -150,7 +139,9 @@ export const Draggable: React.FC<DraggableProps> = ({
                         detail: props
                     })
                 )
-                nodes.current.push(event.target)
+                if (!nodes.current.includes(event.target)) {
+                    nodes.current.push(event.target)
+                }
             }
 
             props.onDrag && props.onDrag(event, data)
@@ -173,7 +164,6 @@ export const Draggable: React.FC<DraggableProps> = ({
 
         phantomRef.current.style.transform = `translate(${x}px, ${y}px)`
     }
-
     return (
         <>
             <ReactDragable

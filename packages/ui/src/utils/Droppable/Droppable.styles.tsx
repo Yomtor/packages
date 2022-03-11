@@ -8,7 +8,9 @@ export const DroppableStyles = createStyles<Classes, DroppableProps>(
         root: {
             userSelect: !disabled ? 'none' : null
         },
-        dragging: {},
+        dragging: {
+            background: 'blue'
+        },
         over: {},
         error: {}
     })
