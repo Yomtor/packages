@@ -1,0 +1,45 @@
+{
+    "name": "@yomtor/ui",
+    "version": "1.0.0",
+    "description": "Made with create-react-library",
+    "author": "Yomyer",
+    "license": "MIT",
+    "repository": "https://github.com/Yomyer/yomtor.git",
+    "main": "dist/index.js",
+    "module": "dist/index.modern.js",
+    "source": "src/index.ts",
+    "scripts": {
+        "build": "microbundle --css-modules false --no-compress --format modern,cjs",
+        "start": "microbundle watch --css-modules false --no-compress --format modern",
+        "prepare": "run-s build",
+        "test": "run-s test:unit test:lint test:build",
+        "test:build": "run-s build",
+        "test:lint": "eslint ./src/**/*.{ts,tsx}",
+        "test:unit": "cross-env CI=1 react-scripts test --env=jsdom",
+        "test:watch": "react-scripts test --env=jsdom",
+        "predeploy": "cd example && npm install && npm run build",
+        "deploy": "gh-pages -d example/build",
+        "storybook": "start-storybook -p 6006",
+        "build-storybook": "build-storybook",
+        "generate": "node ./scripts/generate.js"
+    },
+    "peerDependencies": {
+        "react": ">=16.8.0",
+        "react-dom": ">=16.8.0"
+    },
+    "files": [
+        "dist"
+    ],
+    "dependencies": {
+        "@radix-ui/react-scroll-area": "^0.1.4",
+        "@yomtor/styles": "^0.0.0",
+        "hotkeys-js": "^3.8.5",
+        "lodash": "^4.17.21",
+        "react": "^17.0.2",
+        "react-dom": "^17.0.2",
+        "react-draggable": "^4.4.4",
+        "react-dropzone": "^12.0.4",
+        "react-ink": "^6.4.0",
+        "react-virtual": "^2.10.4"
+    }
+}
