@@ -10,7 +10,7 @@ export default {
     }
 } as ComponentMeta<typeof Button>
 
-const Template: ComponentStory<typeof Button> = ({ children, ...props }) => {
+const Template: ComponentStory<typeof Button> = ({ fullWidth, ...props }) => {
     return <Button {...props}>Button</Button>
 }
 

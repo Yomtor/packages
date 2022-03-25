@@ -12,6 +12,7 @@ type Classes =
     | 'actived'
     | 'parentActived'
     | 'highlighted'
+    | 'wrapperNode'
 
 export const TreeViewStyles = createStyles<Classes, TreeViewProps>((theme) => ({
     root: {
@@ -24,13 +25,17 @@ export const TreeViewStyles = createStyles<Classes, TreeViewProps>((theme) => ({
     viewport: {
         position: 'relative'
     },
-    node: {
+    wrapperNode: {
         width: '100%',
         position: 'absolute',
         top: 0,
+        height: 30
+    },
+    node: {
+        width: '100%',
         display: 'flex',
         alignItems: 'center',
-        height: 30,
+        height: '100%',
         letterSpacing: '.005em',
         fontSize: 13
     },

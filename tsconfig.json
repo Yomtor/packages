@@ -23,7 +23,7 @@
   ],
   "compilerOptions": {
     "paths": {
-      // "@yomtor/*": ["src/yomtor-*/src"]
+      "@yomtor/*": ["src/yomtor-*/src"]
     }
   }
 }

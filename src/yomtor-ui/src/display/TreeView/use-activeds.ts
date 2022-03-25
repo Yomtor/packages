@@ -1,6 +1,6 @@
 import { TreeNodeData } from './TreeNode/TreeNode.props'
 import { isArray } from 'lodash'
-import { useMemo } from 'react'
+import { DependencyList, useMemo } from 'react'
 
 const getChildrens = (nodes: TreeNodeData[], children: TreeNodeData[] = []) => {
     nodes.forEach((node) => {
@@ -16,7 +16,7 @@ const getChildrens = (nodes: TreeNodeData[], children: TreeNodeData[] = []) => {
 export const useActiveds = (
     nodes: TreeNodeData[],
     actived = 'actived',
-    forced = 0
+    deps: DependencyList
 ) => {
     const parents: TreeNodeData[] = []
 
@@ -31,8 +31,8 @@ export const useActiveds = (
         return stack
     }
 
-    const activeds = useMemo(() => nodes.reduce(reducer, []), [forced])
-    const parentActiveds = useMemo(() => parents, [forced])
+    const activeds = useMemo(() => nodes.reduce(reducer, []), deps)
+    const parentActiveds = useMemo(() => parents, deps)
 
     return { activeds, parentActiveds }
 }

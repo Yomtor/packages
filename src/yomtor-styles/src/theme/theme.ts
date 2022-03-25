@@ -20,9 +20,8 @@ const generateVars = (params: any = {}): { [key: string]: string } => {
 
         if (isColor(value)) {
             const { r, g, b, a } = toRgba(value)
-            if (a == 1) {
-                value = `${r}, ${g}, ${b}`
-            }
+
+            value = `${r}, ${g}, ${b}${a !== 1 ? `, ${a}` : ''}`
         }
 
         vars[property] = value
@@ -46,9 +45,7 @@ const getVars = (tree: any, preffix = '-', replace = false) => {
                         let val = `var(${path + '-' + n})`
                         if (isColor(obj[n].toString())) {
                             const { r, g, b, a } = toRgba(obj[n])
-                            if (a == 1) {
-                                val = `rgb(${val})`
-                            }
+                            val = (a === 1 && `rgb(${val})`) || `rgba(${val})`
                         }
 
                         obj[n] = val

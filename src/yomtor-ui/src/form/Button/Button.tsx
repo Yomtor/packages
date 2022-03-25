@@ -1,27 +1,36 @@
 import React, { forwardRef } from 'react'
 import { ButtonStyles } from './Button.styles'
 import { ButtonComponent, ButtonProps } from './Button.props'
-import Ink from 'react-ink'
 import { useHover } from '../../uses/use-hover'
 import { useSetRef } from '../../uses/use-set-ref'
 import { Box } from '../../misc/Box/Box'
+import Ink from 'react-ink'
 import { PolymorphicRef } from '@yomtor/styles'
 
 export const Button: ButtonComponent = forwardRef(
     <C extends React.ElementType = 'button'>(
-        { component, children, ...props }: ButtonProps<C>,
+        {
+            component = 'button',
+            classNames,
+            styles,
+            children,
+            ...props
+        }: ButtonProps<C>,
         ref: PolymorphicRef<C>
     ) => {
         const { hovered, ref: button } = useHover<HTMLButtonElement>()
 
-        const { classes } = ButtonStyles({
-            hovered,
-            ...props
-        })
+        const { classes } = ButtonStyles(
+            {
+                hovered,
+                ...props
+            },
+            { classNames, styles, name: 'Button' }
+        )
 
         return (
-            <Box
-                component='button'
+            <Box<any>
+                component={component}
                 ref={(node) => useSetRef(node, button, ref)}
                 className={classes.root}
                 {...props}
@@ -35,5 +44,5 @@ export const Button: ButtonComponent = forwardRef(
 )
 
 Button.defaultProps = {
-    hoverOpacity: 0.7
+    hoverOpacity: 0.06
 }

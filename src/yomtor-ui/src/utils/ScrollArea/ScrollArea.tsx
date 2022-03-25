@@ -1,7 +1,14 @@
-import React, { forwardRef, useState } from 'react'
+import React, {
+    forwardRef,
+    SyntheticEvent,
+    useEffect,
+    useRef,
+    useState
+} from 'react'
 import { ScrollAreaStyles } from './ScrollArea.styles'
 import { ScrollAreaProps } from './ScrollArea.props'
 import * as RadixScrollArea from '@radix-ui/react-scroll-area'
+import { useDebouncedValue } from '../../uses/use-debounced-value'
 
 export const ScrollArea = forwardRef<HTMLDivElement, ScrollAreaProps>(
     (
@@ -15,18 +22,31 @@ export const ScrollArea = forwardRef<HTMLDivElement, ScrollAreaProps>(
             type = 'hover',
             dir,
             offsetScrollbars = false,
-            // viewportRef,
+            onScrollStop,
             onScroll,
             ...props
         },
         ref
     ) => {
+        const scrollTop = useRef<number>(0)
+        const currentEvent = useRef<SyntheticEvent<HTMLDivElement>>()
         const [scrollbarHovered, setScrollbarHovered] = useState(false)
+        const [debounced] = useDebouncedValue(scrollTop.current, 500)
 
         const { classes, cx } = ScrollAreaStyles(
             { scrollbarSize, offsetScrollbars, scrollbarHovered },
             { name: 'ScrollArea', classNames, styles }
         )
+
+        const scrollHandler = (event) => {
+            event.current = event
+            scrollTop.current = event.target.scrollTop
+            onScroll && onScroll(event)
+        }
+
+        useEffect(() => {
+            onScrollStop && onScrollStop(currentEvent.current)
+        }, [debounced])
 
         return (
             <RadixScrollArea.Root
@@ -38,11 +58,7 @@ export const ScrollArea = forwardRef<HTMLDivElement, ScrollAreaProps>(
                     <RadixScrollArea.Viewport
                         className={classes.viewport}
                         ref={ref}
-                        onScroll={
-                            typeof onScroll === 'function'
-                                ? (event) => onScroll(event)
-                                : undefined
-                        }
+                        onScroll={scrollHandler}
                     >
                         {children}
                     </RadixScrollArea.Viewport>

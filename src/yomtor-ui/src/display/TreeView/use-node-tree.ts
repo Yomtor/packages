@@ -9,16 +9,15 @@ type UseNodeTreeProps = {
     collapsedProp?: string
 }
 
-export const useNodeTree = ({
+export const useRecursive = ({
     data,
     collapsed,
     collapsedProp
 }: UseNodeTreeProps) => {
-    const [, forceUpdate] = useReducer((x) => x + 1, 0)
+    let index = -1
 
     const nodes: TreeNodeData[] = []
     const depths: number[] = []
-    let index = -1
 
     const recursive = (
         data: TreeNodeData[] = [],
@@ -43,6 +42,16 @@ export const useNodeTree = ({
             }
         })
     }
+    recursive(data)
+    return { nodes, depths }
+}
+
+export const useNodeTree = ({
+    data,
+    collapsed,
+    collapsedProp
+}: UseNodeTreeProps) => {
+    const [, forceUpdate] = useReducer((x) => x + 1, 0)
 
     const collapser = (node: TreeNodeData, event: MouseEvent) => {
         node[collapsedProp] = !isUndefined(node[collapsedProp])
@@ -54,7 +63,11 @@ export const useNodeTree = ({
         forceUpdate()
     }
 
-    recursive(data)
+    const { nodes, depths } = useRecursive({
+        data,
+        collapsed,
+        collapsedProp
+    })
 
     return { nodes, depths, collapser }
 }

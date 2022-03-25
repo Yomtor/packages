@@ -1,4 +1,10 @@
-import React, { useRef, useCallback, useReducer } from 'react'
+import React, {
+    useRef,
+    useCallback,
+    useReducer,
+    useMemo,
+    useState
+} from 'react'
 import { TreeViewStyles } from './TreeView.styles'
 import { TreeViewProps } from './TreeView.props'
 import { TreeNode } from './TreeNode/TreeNode'
@@ -9,6 +15,7 @@ import { isArray } from 'lodash'
 import { PlayIcon } from '../../icon/Play'
 import { useNodeTree } from './use-node-tree'
 import { useActiveds } from './use-activeds'
+import { Draggable } from '../../utils/Draggable/Draggable'
 
 /**
  * Description
@@ -29,6 +36,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
 
     const viewportRef = useRef<HTMLDivElement>()
     const scrollRef = useRef<HTMLDivElement>()
+    const [scrolling, setScrolling] = useState<boolean>(false)
 
     const { classes, cx } = TreeViewStyles(
         { ...props },
@@ -48,7 +56,10 @@ export const TreeView: React.FC<TreeViewProps> = ({
         parentRef: scrollRef
     })
 
-    const { activeds, parentActiveds } = useActiveds(nodes, activedProp, click)
+    const { activeds, parentActiveds } = useActiveds(nodes, activedProp, [
+        click,
+        data
+    ])
 
     const childHandlers = (data: TreeNodeData) => ({
         onClick: () => {
@@ -65,9 +76,35 @@ export const TreeView: React.FC<TreeViewProps> = ({
         }
     })
 
+    const scrollHandler = () => {
+        setScrolling(true)
+    }
+    const scrollStopHandler = () => {
+        setScrolling(false)
+    }
+
+    const OptionalDraggable = useMemo(() => {
+        if (!scrolling) return Draggable
+        return ({ children }) => <>a{children}</>
+    }, [scrolling])
+
+    /*
+    (!scrollling && useMemo(() => Draggable, [])) ||
+        useMemo(
+            () =>
+                ({ children }) =>
+                    <>{children}</>,
+            []
+        )
+        */
+
     return (
         <div {...props} className={classes.root}>
-            <ScrollArea ref={scrollRef}>
+            <ScrollArea
+                ref={scrollRef}
+                onScroll={scrollHandler}
+                onScrollStop={scrollStopHandler}
+            >
                 <div
                     ref={viewportRef}
                     className={classes.viewport}
@@ -79,57 +116,73 @@ export const TreeView: React.FC<TreeViewProps> = ({
                             <div
                                 key={item.index}
                                 ref={item.measureRef}
-                                className={cx(classes.node, {
-                                    [classes.highlighted]:
-                                        node[highlightedProp] &&
-                                        !node[activedProp],
-                                    [classes.actived]: activeds.includes(node),
-                                    [classes.parentActived]:
-                                        parentActiveds.includes(node)
-                                })}
+                                className={classes.wrapperNode}
                                 style={{
                                     transform: `translateY(${item.start}px)`
                                 }}
-                                {...childHandlers(node)}
                             >
-                                <div className={classes.indents}>
-                                    {[...Array(depths[item.index] + 1)].map(
-                                        (_, i) => (
-                                            <span
-                                                key={i}
-                                                className={cx(classes.indent, {
-                                                    [classes.first]:
-                                                        !depths[item.index]
-                                                })}
-                                            />
-                                        )
-                                    )}
-
-                                    <em
-                                        className={cx(
-                                            classes.indent,
-                                            classes.collapser,
-                                            {
-                                                [classes.first]:
-                                                    !depths[item.index]
-                                            }
-                                        )}
-                                        style={{
-                                            visibility: isArray(node.children)
-                                                ? 'visible'
-                                                : null
-                                        }}
-                                        onClick={(event) =>
-                                            collapser(node, event)
-                                        }
-                                        onMouseDown={(event) => {
-                                            event.stopPropagation()
-                                        }}
+                                <OptionalDraggable>
+                                    <div
+                                        className={cx(classes.node, {
+                                            [classes.highlighted]:
+                                                node[highlightedProp] &&
+                                                !node[activedProp],
+                                            [classes.actived]:
+                                                activeds.includes(node),
+                                            [classes.parentActived]:
+                                                parentActiveds.includes(node)
+                                        })}
+                                        {...childHandlers(node)}
                                     >
-                                        <PlayIcon rotate={!collapsed && 90} />
-                                    </em>
-                                </div>
-                                <Node {...node} node={node} />
+                                        <div className={classes.indents}>
+                                            {[
+                                                ...Array(depths[item.index] + 1)
+                                            ].map((_, i) => (
+                                                <span
+                                                    key={i}
+                                                    className={cx(
+                                                        classes.indent,
+                                                        {
+                                                            [classes.first]:
+                                                                !depths[
+                                                                    item.index
+                                                                ]
+                                                        }
+                                                    )}
+                                                />
+                                            ))}
+
+                                            <em
+                                                className={cx(
+                                                    classes.indent,
+                                                    classes.collapser,
+                                                    {
+                                                        [classes.first]:
+                                                            !depths[item.index]
+                                                    }
+                                                )}
+                                                style={{
+                                                    visibility: isArray(
+                                                        node.children
+                                                    )
+                                                        ? 'visible'
+                                                        : null
+                                                }}
+                                                onClick={(event) =>
+                                                    collapser(node, event)
+                                                }
+                                                onMouseDown={(event) => {
+                                                    event.stopPropagation()
+                                                }}
+                                            >
+                                                <PlayIcon
+                                                    rotate={!collapsed && 90}
+                                                />
+                                            </em>
+                                        </div>
+                                        <Node {...node} node={node} />
+                                    </div>
+                                </OptionalDraggable>
                             </div>
                         )
                     })}

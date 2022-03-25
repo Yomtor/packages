@@ -44,7 +44,9 @@ export const Draggable: React.FC<DraggableProps> = ({
     }
 
     useEffect(() => {
-        phantomRef.current.parentNode.removeChild(phantomRef.current)
+        if (Array.isArray(phantomRef.current.parentNode)) {
+            phantomRef.current.parentNode.removeChild(phantomRef.current)
+        }
 
         const element = phantomRef.current
         const transitionend = () => {
@@ -62,7 +64,8 @@ export const Draggable: React.FC<DraggableProps> = ({
     }, [])
 
     useEffect(() => {
-        if (dragging && props.move) document.body.append(phantomRef.current)
+        if (dragging && props.move)
+            document.body.append(phantomRef.current.cloneNode())
     }, [dragging])
 
     const intersect = (target: HTMLElement) => {

@@ -1,5 +1,5 @@
 import { DefaultProps } from '@yomtor/styles'
-import { MouseEvent, UIEvent } from 'react'
+import { MouseEvent, SyntheticEvent } from 'react'
 
 export type ScrollAreaProps = DefaultProps & {
     scrollbarSize?: number
@@ -8,7 +8,8 @@ export type ScrollAreaProps = DefaultProps & {
     dir?: 'ltr' | 'rtl'
     offsetScrollbars?: boolean
     viewportRef?: any // React.forwardRef<HTMLDivElement>
-    onScroll?: (event: UIEvent<HTMLDivElement>) => void
+    onScroll?: (event: SyntheticEvent<HTMLDivElement>) => void
+    onScrollStop?: (event: SyntheticEvent<HTMLDivElement>) => void
     onClick?: (event: MouseEvent) => void
     children: React.ReactNode
 }

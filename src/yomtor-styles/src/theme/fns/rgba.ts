@@ -1,6 +1,12 @@
 import { toRgba } from '../utils/to-rgba'
 
-export function rgba(this: { [key: string]: any }, color: string, alpha = 1) {
+export function rgba(
+    this: { [key: string]: any },
+    color: string,
+    alpha?: number
+) {
+    alpha = alpha || 1
+
     if (typeof color !== 'string' || alpha > 1 || alpha < 0) {
         return 'rgba(0, 0, 0, 1)'
     }
@@ -10,9 +16,12 @@ export function rgba(this: { [key: string]: any }, color: string, alpha = 1) {
     }
 
     if (color.startsWith('rgba(var(--')) {
-        color = this.vars[color]
+        color = `rgba(${
+            this.vars[color.replace(/rgba\(var\((.*)\)\)/g, '$1')]
+        })`
     }
 
     const { r, g, b } = toRgba(color)
+
     return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }

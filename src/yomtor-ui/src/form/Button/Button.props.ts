@@ -34,10 +34,8 @@ export type ButtonProps<C = 'button'> = PolymorphicComponentProps<C, Props>
 
 export type ButtonComponent = (<C = 'button'>(
     props: ButtonProps<C>
-) => React.ReactElement) & {
-    displayName?: string
-    // defaultProps?: Props
-}
+) => React.ReactElement) &
+    React.ForwardRefExoticComponent<ButtonProps<any>>
 
 /* & React.DetailedHTMLProps<
     React.ButtonHTMLAttributes<HTMLButtonElement>,

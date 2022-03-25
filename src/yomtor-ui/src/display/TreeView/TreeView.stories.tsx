@@ -25,6 +25,7 @@ const Template: ComponentStory<typeof TreeView> = ({ ...props }) => {
             </div>
             <button
                 onClick={() => {
+                    console.log('a')
                     props.data[0].children[1].actived =
                         !props.data[0].children[1].actived
                     setData([...data])
