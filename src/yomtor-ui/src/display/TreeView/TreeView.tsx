@@ -15,7 +15,10 @@ import { isArray } from 'lodash'
 import { PlayIcon } from '../../icon/Play'
 import { useNodeTree } from './use-node-tree'
 import { useActiveds } from './use-activeds'
-import { Draggable } from '../../utils/Draggable/Draggable'
+import { Draggable as DraggableUtil } from '../../utils/Draggable/Draggable'
+import { Droppable } from '../../utils/Droppable/Droppable'
+import { DropEvent } from 'src/utils/Droppable/Droppable.props'
+import { DraggableEvent } from 'react-draggable'
 
 /**
  * Description
@@ -23,7 +26,7 @@ import { Draggable } from '../../utils/Draggable/Draggable'
 export const TreeView: React.FC<TreeViewProps> = ({
     classNames,
     nodeComponent: Node = TreeNode,
-    nodeHeight = 30,
+    nodeHeight = 32,
     collapsed = false,
     data,
     highlightedProp = 'highlighted',
@@ -31,7 +34,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
     collapsedProp = 'collapsed',
     ...props
 }) => {
-    const [, forceHover] = useReducer((x: number) => x + 1, 0)
+    const [hover, forceHover] = useReducer((x: number) => x + 1, 0)
     const [click, forceClick] = useReducer((x: number) => x + 1, 0)
 
     const viewportRef = useRef<HTMLDivElement>()
@@ -83,20 +86,120 @@ export const TreeView: React.FC<TreeViewProps> = ({
         setScrolling(false)
     }
 
-    const OptionalDraggable = useMemo(() => {
-        if (!scrolling) return Draggable
-        return ({ children }) => <>a{children}</>
+    const dropEnterHandler = (event: DropEvent) => {
+        const rect = event.target.getBoundingClientRect()
+        const y = event.props.mouseEvent.clientY
+
+        const above = rect.top + rect.height / 2 < y
+
+        console.log(above)
+    }
+
+    const Draggable = useMemo(() => {
+        if (!scrolling) return DraggableUtil
+        return ({ children }) => <>{children}</>
     }, [scrolling])
 
-    /*
-    (!scrollling && useMemo(() => Draggable, [])) ||
-        useMemo(
-            () =>
-                ({ children }) =>
-                    <>{children}</>,
-            []
-        )
-        */
+    const viewport = useMemo(
+        () => (
+            <div
+                ref={viewportRef}
+                className={classes.viewport}
+                style={{ height: totalSize }}
+            >
+                {virtualItems.map((item) => {
+                    const node = nodes[item.index]
+                    return (
+                        <div
+                            key={item.index}
+                            ref={item.measureRef}
+                            className={classes.wrapperNode}
+                            style={{
+                                transform: `translateY(${item.start}px)`
+                            }}
+                        >
+                            <Droppable onMove={dropEnterHandler}>
+                                {() => (
+                                    <DraggableUtil phantom>
+                                        <div
+                                            className={cx(classes.node, {
+                                                [classes.highlighted]:
+                                                    node[highlightedProp] &&
+                                                    !node[activedProp],
+                                                [classes.actived]:
+                                                    activeds.includes(node),
+                                                [classes.parentActived]:
+                                                    parentActiveds.includes(
+                                                        node
+                                                    )
+                                            })}
+                                            {...childHandlers(node)}
+                                        >
+                                            <div className={classes.indents}>
+                                                {[
+                                                    ...Array(
+                                                        depths[item.index] + 1
+                                                    )
+                                                ].map((_, i) => (
+                                                    <span
+                                                        key={i}
+                                                        className={cx(
+                                                            classes.indent,
+                                                            {
+                                                                [classes.first]:
+                                                                    !depths[
+                                                                        item
+                                                                            .index
+                                                                    ]
+                                                            }
+                                                        )}
+                                                    />
+                                                ))}
+
+                                                <em
+                                                    className={cx(
+                                                        classes.indent,
+                                                        classes.collapser,
+                                                        {
+                                                            [classes.first]:
+                                                                !depths[
+                                                                    item.index
+                                                                ]
+                                                        }
+                                                    )}
+                                                    style={{
+                                                        visibility: isArray(
+                                                            node.children
+                                                        )
+                                                            ? 'visible'
+                                                            : null
+                                                    }}
+                                                    onClick={(event) =>
+                                                        collapser(node, event)
+                                                    }
+                                                    onMouseDown={(event) => {
+                                                        event.stopPropagation()
+                                                    }}
+                                                >
+                                                    <PlayIcon
+                                                        rotate={
+                                                            !collapsed && 90
+                                                        }
+                                                    />
+                                                </em>
+                                            </div>
+                                            <Node {...node} node={node} />
+                                        </div>
+                                    </DraggableUtil>
+                                )}
+                            </Droppable>
+                        </div>
+                    )
+                })}
+            </div>
+        ),
+        [virtualItems, click, data, hover]
+    )
 
     return (
         <div {...props} className={classes.root}>
@@ -105,88 +208,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
                 onScroll={scrollHandler}
                 onScrollStop={scrollStopHandler}
             >
-                <div
-                    ref={viewportRef}
-                    className={classes.viewport}
-                    style={{ height: totalSize }}
-                >
-                    {virtualItems.map((item) => {
-                        const node = nodes[item.index]
-                        return (
-                            <div
-                                key={item.index}
-                                ref={item.measureRef}
-                                className={classes.wrapperNode}
-                                style={{
-                                    transform: `translateY(${item.start}px)`
-                                }}
-                            >
-                                <OptionalDraggable>
-                                    <div
-                                        className={cx(classes.node, {
-                                            [classes.highlighted]:
-                                                node[highlightedProp] &&
-                                                !node[activedProp],
-                                            [classes.actived]:
-                                                activeds.includes(node),
-                                            [classes.parentActived]:
-                                                parentActiveds.includes(node)
-                                        })}
-                                        {...childHandlers(node)}
-                                    >
-                                        <div className={classes.indents}>
-                                            {[
-                                                ...Array(depths[item.index] + 1)
-                                            ].map((_, i) => (
-                                                <span
-                                                    key={i}
-                                                    className={cx(
-                                                        classes.indent,
-                                                        {
-                                                            [classes.first]:
-                                                                !depths[
-                                                                    item.index
-                                                                ]
-                                                        }
-                                                    )}
-                                                />
-                                            ))}
-
-                                            <em
-                                                className={cx(
-                                                    classes.indent,
-                                                    classes.collapser,
-                                                    {
-                                                        [classes.first]:
-                                                            !depths[item.index]
-                                                    }
-                                                )}
-                                                style={{
-                                                    visibility: isArray(
-                                                        node.children
-                                                    )
-                                                        ? 'visible'
-                                                        : null
-                                                }}
-                                                onClick={(event) =>
-                                                    collapser(node, event)
-                                                }
-                                                onMouseDown={(event) => {
-                                                    event.stopPropagation()
-                                                }}
-                                            >
-                                                <PlayIcon
-                                                    rotate={!collapsed && 90}
-                                                />
-                                            </em>
-                                        </div>
-                                        <Node {...node} node={node} />
-                                    </div>
-                                </OptionalDraggable>
-                            </div>
-                        )
-                    })}
-                </div>
+                {viewport}
             </ScrollArea>
         </div>
     )

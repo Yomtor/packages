@@ -17,7 +17,7 @@ export const TreeObjectNodeStyles = createStyles<
         alignItems: 'center',
         justifyContent: 'space-between',
         flexGrow: 1,
-        padding: theme.spacing.xs,
+        padding: `0 ${theme.spacing.xs}px`,
         gap: 8
     },
     actions: {

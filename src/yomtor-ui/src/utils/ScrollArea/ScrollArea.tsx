@@ -31,7 +31,7 @@ export const ScrollArea = forwardRef<HTMLDivElement, ScrollAreaProps>(
         const scrollTop = useRef<number>(0)
         const currentEvent = useRef<SyntheticEvent<HTMLDivElement>>()
         const [scrollbarHovered, setScrollbarHovered] = useState(false)
-        const [debounced] = useDebouncedValue(scrollTop.current, 500)
+        const [debounced] = useDebouncedValue(scrollTop.current, 100)
 
         const { classes, cx } = ScrollAreaStyles(
             { scrollbarSize, offsetScrollbars, scrollbarHovered },

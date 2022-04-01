@@ -16,13 +16,11 @@ export const DraggableStyles = createStyles<Classes, DraggableStyeProps>(
                 position: 'absolute',
                 top: 0,
                 left: 0,
-                transition: !dragging && 'transform .3s ease-in-out',
-                opacity: !animated && !dragging && 0,
                 zIndex: 10
             },
             handler: {
                 transform: 'none !important',
-                pointerEvents: (dragging && 'none') || 'all',
+                pointerEvents: ((dragging || animated) && 'none') || 'all',
                 opacity: move && !phantom && (animated || dragging) && 0,
                 userSelect: !disabled ? 'none' : null
             }

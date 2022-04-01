@@ -28,7 +28,7 @@ export const Draggable: React.FC<DraggableProps> = ({
     const distance = useRef<number>(0)
     const status = useRef<'started' | 'dragging' | 'idle'>('idle')
 
-    const { classes, cx } = DraggableStyles(
+    const { classes } = DraggableStyles(
         { ...props, dragging, animated },
         { name: 'Draggable' }
     )
@@ -37,6 +37,9 @@ export const Draggable: React.FC<DraggableProps> = ({
         const { top, left, width, height } =
             handlerRef.current.getBoundingClientRect()
 
+        phantomRef.current.classList.remove(...classes.handler.split(' '))
+        phantomRef.current.classList.add(...classes.phantom.split(' '))
+
         phantomRef.current.style.top = `${top}px`
         phantomRef.current.style.left = `${left}px`
         phantomRef.current.style.width = `${width}px`
@@ -44,32 +47,32 @@ export const Draggable: React.FC<DraggableProps> = ({
     }
 
     useEffect(() => {
-        if (Array.isArray(phantomRef.current.parentNode)) {
-            phantomRef.current.parentNode.removeChild(phantomRef.current)
+        if (dragging && props.move) {
+            phantomRef.current = handlerRef.current.cloneNode(
+                true
+            ) as HTMLDivElement
+            document.body.append(phantomRef.current)
+
+            updatePanthom()
+
+            const transitionend = () => {
+                setAnimated(undefined)
+                phantomRef.current.remove()
+            }
+
+            phantomRef.current.addEventListener('transitionend', transitionend)
         }
-
-        const element = phantomRef.current
-        const transitionend = () => {
-            setAnimated(false)
-            document.body.removeChild(element)
-        }
-
-        element.addEventListener('transitionend', transitionend)
-
-        return () => {
-            element.removeEventListener('transitionend', transitionend)
-            element.remove()
-            setAnimated(true)
-        }
-    }, [])
-
-    useEffect(() => {
-        if (dragging && props.move)
-            document.body.append(phantomRef.current.cloneNode())
     }, [dragging])
 
+    useEffect(() => {
+        phantomRef.current &&
+            (phantomRef.current.style.transition = `transform ${
+                animated ? '.3s' : '.00001ms'
+            } ease-in-out`)
+    }, [animated])
+
     const intersect = (target: HTMLElement) => {
-        return props.move
+        return props.move && phantomRef.current
             ? useIntersectRect(
                   phantomRef.current.getBoundingClientRect(),
                   target.getBoundingClientRect()
@@ -78,7 +81,6 @@ export const Draggable: React.FC<DraggableProps> = ({
     }
 
     const startHandler = (_: DraggableEvent, data: DraggableData) => {
-        document.dispatchEvent(new Event('onDragStart', { bubbles: true }))
         setOffset({
             x: -data.x || 0,
             y: -data.y || 0
@@ -89,6 +91,8 @@ export const Draggable: React.FC<DraggableProps> = ({
     }
 
     const stopHandler = (event: DraggableEvent, data: DraggableData) => {
+        if (status.current !== 'dragging') return
+
         setDragging(false)
 
         distance.current = 0
@@ -96,20 +100,33 @@ export const Draggable: React.FC<DraggableProps> = ({
 
         if (intersect(event.target as HTMLElement)) {
             event.target.dispatchEvent(
-                new CustomEvent('onDrop', { bubbles: true, detail: props })
+                new CustomEvent('onDrop', {
+                    bubbles: true,
+                    detail: { ...props, mouseEvent: event }
+                })
             )
-            setAnimated(
-                !(event.target as HTMLElement).closest('[data-droppable]')
-            )
+            if (props.move) {
+                setAnimated(
+                    !(event.target as HTMLElement).closest('[data-droppable]')
+                )
+            } else {
+                setAnimated(undefined)
+            }
         }
 
         document.dispatchEvent(
-            new CustomEvent('onDragStop', { bubbles: true, detail: props })
+            new CustomEvent('onDragStop', {
+                bubbles: true,
+                detail: { ...props, mouseEvent: event }
+            })
         )
 
         nodes.current.forEach((n) => {
             n.dispatchEvent(
-                new CustomEvent('onDropClear', { bubbles: true, detail: props })
+                new CustomEvent('onDropClear', {
+                    bubbles: true,
+                    detail: { ...props, mouseEvent: event }
+                })
             )
         })
 
@@ -117,19 +134,19 @@ export const Draggable: React.FC<DraggableProps> = ({
 
         props.onStop && props.onStop(event, data)
 
-        if (props.move) {
+        if (props.move && phantomRef.current) {
             phantomRef.current.style.transform = `translate(0px, 0px)`
         }
     }
 
     const dragHandler = (event: DraggableEvent, data: DraggableData) => {
-        updatePanthom()
         distance.current += Math.abs(data.deltaX) + Math.abs(data.deltaY)
 
         if (distance.current < start) return
 
         if (status.current === 'started') {
             setDragging(true)
+            document.dispatchEvent(new Event('onDragStart', { bubbles: true }))
             props.onStart && props.onStart(event, data)
             status.current = 'dragging'
         } else {
@@ -139,7 +156,7 @@ export const Draggable: React.FC<DraggableProps> = ({
                 event.target.dispatchEvent(
                     new CustomEvent('onDropMove', {
                         bubbles: true,
-                        detail: props
+                        detail: { ...props, mouseEvent: event }
                     })
                 )
                 if (!nodes.current.includes(event.target)) {
@@ -181,14 +198,14 @@ export const Draggable: React.FC<DraggableProps> = ({
                 nodeRef={handlerRef}
             >
                 {cloneElement(Children.only(children), {
-                    className: cx(children.props.className, classes.handler),
+                    className: `${
+                        (children.props.className &&
+                            children.props.className + ' ') ||
+                        ''
+                    }${classes.handler}`,
                     ref: handlerRef
                 })}
             </ReactDragable>
-            {cloneElement(Children.only(children), {
-                className: cx(children.props.className, classes.phantom),
-                ref: phantomRef
-            })}
         </>
     )
 }

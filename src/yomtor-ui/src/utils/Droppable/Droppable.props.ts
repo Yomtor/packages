@@ -15,11 +15,13 @@ export type DropEvent<D = any> = {
     props: D
     files?: File[]
     defaultEvent?: Event
+    target?: HTMLElement
 }
 
 export type DroppableProps = DefaultProps & {
     onDrop?: (data: DropEvent) => void | false
     onEnter?: (event: DropEvent) => void | false
+    onMove?: (event: DropEvent) => void | false
     onLeave?: (event: DropEvent) => void | false
     onReject?(fileRejections: FileRejection[]): void
     children?: ((status: DropzoneStatus) => ReactNode) | ReactNode

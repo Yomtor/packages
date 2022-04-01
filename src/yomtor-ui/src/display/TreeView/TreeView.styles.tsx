@@ -29,7 +29,7 @@ export const TreeViewStyles = createStyles<Classes, TreeViewProps>((theme) => ({
         width: '100%',
         position: 'absolute',
         top: 0,
-        height: 30
+        height: 32
     },
     node: {
         width: '100%',

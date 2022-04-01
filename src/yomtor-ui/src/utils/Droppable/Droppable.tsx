@@ -13,6 +13,7 @@ export const Droppable: React.FC<DroppableProps> = ({
     onDrop,
     onEnter,
     onLeave,
+    onMove,
     onReject,
     children,
     accept,
@@ -38,15 +39,15 @@ export const Droppable: React.FC<DroppableProps> = ({
     )
 
     const move = (event: Event | File[]) => {
+        data.current = (event as CustomEvent).detail
         if (!over) {
             setOver(true)
-            data.current = (event as CustomEvent).detail
             onEnter && onEnter(createEvent(event))
         }
+        onMove && onMove(createEvent(event))
     }
 
     const clear = () => {
-        console.log('a')
         counter.current = 0
         setOver(false)
         setDragging(false)
@@ -90,7 +91,8 @@ export const Droppable: React.FC<DroppableProps> = ({
             type: files ? 'files' : 'event',
             props: !files && data.current,
             defaultEvent: !(event instanceof Array) ? event : null,
-            files: isArray(files) ? files : []
+            files: isArray(files) ? files : [],
+            target: element.current
         }
     }
 
@@ -172,7 +174,7 @@ export const Droppable: React.FC<DroppableProps> = ({
             {...getRootProps({ ref: element })}
             data-droppable
         >
-            <input {...getInputProps()} />
+            {!externalDisabled && <input {...getInputProps()} />}
             {(isFunction(children) &&
                 children({
                     accepted: isDragAccept || isDropAccept,

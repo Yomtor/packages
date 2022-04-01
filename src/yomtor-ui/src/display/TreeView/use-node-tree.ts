@@ -29,9 +29,11 @@ export const useRecursive = ({
             nodes[index] = node
             depths[index] = depth
 
+            /*
             if (parent && !node.parent) {
                 node.parent = parent
             }
+            */
 
             if (
                 isArray(node.children) && !isUndefined(node[collapsedProp])
