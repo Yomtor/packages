@@ -53,8 +53,6 @@ export const Draggable: React.FC<DraggableProps> = ({
             ) as HTMLDivElement
             document.body.append(phantomRef.current)
 
-            updatePanthom()
-
             const transitionend = () => {
                 setAnimated(undefined)
                 phantomRef.current.remove()
@@ -181,6 +179,8 @@ export const Draggable: React.FC<DraggableProps> = ({
         if (props.axis !== 'both' && props.axis !== 'y') {
             y = 0
         }
+
+        updatePanthom()
 
         phantomRef.current.style.transform = `translate(${x}px, ${y}px)`
     }

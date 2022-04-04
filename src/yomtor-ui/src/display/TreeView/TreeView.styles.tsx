@@ -13,6 +13,7 @@ type Classes =
     | 'parentActived'
     | 'highlighted'
     | 'wrapperNode'
+    | 'line'
 
 export const TreeViewStyles = createStyles<Classes, TreeViewProps>((theme) => ({
     root: {
@@ -83,5 +84,14 @@ export const TreeViewStyles = createStyles<Classes, TreeViewProps>((theme) => ({
             border: `1px solid ${theme.palette.primary.main}`,
             pointerEvents: 'none'
         }
+    },
+    line: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: 0,
+        height: 3,
+        background: 'white',
+        pointerEvents: 'none'
     }
 }))
