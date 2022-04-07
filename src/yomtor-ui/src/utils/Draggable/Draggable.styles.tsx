@@ -20,7 +20,8 @@ export const DraggableStyles = createStyles<Classes, DraggableStyeProps>(
             },
             handler: {
                 transform: 'none !important',
-                pointerEvents: ((dragging || animated) && 'none') || 'all',
+                pointerEvents:
+                    (move && (dragging || animated) && 'none') || 'all',
                 opacity: move && !phantom && (animated || dragging) && 0,
                 userSelect: !disabled ? 'none' : null
             }

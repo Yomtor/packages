@@ -28,6 +28,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
     classNames,
     nodeComponent: Node = TreeNode,
     nodeHeight = 32,
+    indentWitdh = 24,
     collapsed = false,
     data,
     highlightedProp = 'highlighted',
@@ -42,17 +43,24 @@ export const TreeView: React.FC<TreeViewProps> = ({
     const scrollRef = useRef<HTMLDivElement>()
     const lineRef = useRef<HTMLDivElement>()
     const draggingItem = useRef<VirtualItem>()
-    const targetRef = useRef<HTMLElement>()
+    const distanceX = useRef<number>(0)
+    const dropInfo = useRef<{
+        drag: TreeNodeData
+        drop: TreeNodeData
+        position: Positions
+    }>()
 
+    const [current, setCurrent] = useState<number>()
+    const [target, setTarget] = useState<HTMLElement>()
     const [scrolling, setScrolling] = useState<boolean>(false)
     const [position, setPosition] = useState<Positions>()
 
     const { classes, cx } = TreeViewStyles(
-        { ...props },
+        { ...props, indentWitdh },
         { name: 'TreeView', classNames }
     )
 
-    const { nodes, depths, collapser } = useNodeTree({
+    const { nodes, depths, parents, next, collapser } = useNodeTree({
         data,
         collapsed,
         collapsedProp,
@@ -77,6 +85,29 @@ export const TreeView: React.FC<TreeViewProps> = ({
         data
     ])
 
+    useEffect(() => {
+        if (target) {
+            const rect = target.getBoundingClientRect()
+            if (lineRef.current) {
+                const top =
+                    (position === 'above' ? rect.top : rect.bottom) +
+                    scrollRef.current.scrollTop -
+                    scrollRef.current.getBoundingClientRect().top
+
+                lineRef.current.style.top = `${top}px`
+                lineRef.current.style.left = `${
+                    indentWitdh * (depths[current] + 1)
+                }px`
+            }
+
+            dropInfo.current = {
+                drag: nodes[draggingItem.current.index],
+                drop: nodes[current],
+                position
+            }
+        }
+    }, [current, position])
+
     const childHandlers = (data: TreeNodeData) => ({
         onClick: () => {
             data[activedProp] = !data[activedProp]
@@ -99,41 +130,71 @@ export const TreeView: React.FC<TreeViewProps> = ({
         setScrolling(false)
     }
 
-    const dropEnterHandler = (node: TreeNodeData, event: DropEvent) => {
-        targetRef.current = event.target
-        const rect = targetRef.current.getBoundingClientRect()
-        let height = rect.height / 2
-        const y = event.props.mouseEvent.clientY
-        let position: Positions = 'in'
+    const getAllParents = (index: number, stack = [], first = true) => {
+        const nextIndex =
+            next[index] && nodes.findIndex((node) => node === next[index])
 
-        if (node.children) {
-            height = 7
+        if (
+            isUndefined(nextIndex) &&
+            (depths[index + 1] < depths[index] || !first) &&
+            parents[index]
+        ) {
+            stack.push(parents[index])
+            const parent = nodes.findIndex((node) => node === parents[index])
+
+            getAllParents(parent, stack, false)
         }
+
+        return stack
+    }
+
+    const dropMoveHandler = ({ target, props }: DropEvent, index: number) => {
+        setTarget(target)
+
+        const node = nodes[index]
+        const rect = target.getBoundingClientRect()
+        const height = node.children ? 10 : rect.height / 2
+        const y = props.mouseEvent.clientY
+        distanceX.current += props.mouseEvent.movementX
+        let position: Positions = 'in'
 
         if (rect.top + height >= y) {
             position = 'above'
         }
         if (rect.bottom - height <= y) {
             position = 'below'
+
+            const parents = getAllParents(index).reverse()
+            if (parents.length) {
+                parents.push(node)
+                let indexX = Math.ceil(distanceX.current / indentWitdh) - 2
+                if (index > -1) {
+                    indexX = Math.min(Math.max(indexX, 0), parents.length - 1)
+                    index = nodes.findIndex((node) => node === parents[indexX])
+                }
+            } else if (depths[index + 1] > depths[index]) {
+                index = index + 1
+            }
         }
 
+        setCurrent(index)
         setPosition(position)
     }
 
-    useEffect(() => {
-        if (targetRef.current) {
-            const rect = targetRef.current.getBoundingClientRect()
-            lineRef.current &&
-                (lineRef.current.style.top = `${
-                    (position === 'above' ? rect.top : rect.bottom) +
-                    scrollRef.current.scrollTop -
-                    scrollRef.current.getBoundingClientRect().top
-                }px`)
-        }
-    }, [position])
+    const mouseLeaveHandler = () => {
+        setPosition(undefined)
+        setCurrent(undefined)
+    }
+
+    const dragStartHandler = (item: VirtualItem) => {
+        distanceX.current = 0
+        draggingItem.current = item
+    }
 
     const dropHandler = () => {
-        // draggingItem.current = undefined
+        console.log(dropInfo.current)
+        setPosition(undefined)
+        setCurrent(undefined)
     }
 
     const Draggable = useMemo(() => {
@@ -161,21 +222,24 @@ export const TreeView: React.FC<TreeViewProps> = ({
                         >
                             <Droppable
                                 onMove={(event) =>
-                                    dropEnterHandler(node, event)
+                                    dropMoveHandler(event, item.index)
                                 }
                                 onDrop={dropHandler}
                             >
                                 {() => (
                                     <DraggableUtil
                                         phantom
-                                        onStart={() => {
-                                            draggingItem.current = item
-                                        }}
+                                        move={false}
+                                        onStart={() => dragStartHandler(item)}
                                     >
                                         <div
                                             className={cx(classes.node, {
                                                 [classes.highlighted]:
                                                     node[highlightedProp] &&
+                                                    ![
+                                                        'below',
+                                                        'above'
+                                                    ].includes(position) &&
                                                     !node[activedProp],
                                                 [classes.actived]:
                                                     activeds.includes(node),
@@ -256,7 +320,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
                         </div>
                     )
                 })}
-                {position !== 'in' && (
+                {position && position !== 'in' && (
                     <div ref={lineRef} className={classes.line} />
                 )}
             </div>
@@ -265,7 +329,11 @@ export const TreeView: React.FC<TreeViewProps> = ({
     )
 
     return (
-        <div {...props} className={classes.root}>
+        <div
+            {...props}
+            className={classes.root}
+            onMouseLeave={mouseLeaveHandler}
+        >
             <ScrollArea
                 ref={scrollRef}
                 onScroll={scrollHandler}

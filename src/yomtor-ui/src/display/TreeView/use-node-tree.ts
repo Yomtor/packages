@@ -18,22 +18,25 @@ export const useRecursive = ({
 
     const nodes: TreeNodeData[] = []
     const depths: number[] = []
+    const parents: Record<number, TreeNodeData> = {}
+    const previous: Record<number, TreeNodeData> = {}
+    const next: Record<number, TreeNodeData> = {}
 
     const recursive = (
         data: TreeNodeData[] = [],
         depth = 0,
         parent?: TreeNodeData
     ) => {
-        data.forEach((node) => {
+        data.forEach((node, i) => {
             index++
             nodes[index] = node
             depths[index] = depth
+            previous[index] = data[i - 1]
+            next[index] = data[i + 1]
 
-            /*
-            if (parent && !node.parent) {
-                node.parent = parent
+            if (parent) {
+                parents[index] = parent
             }
-            */
 
             if (
                 isArray(node.children) && !isUndefined(node[collapsedProp])
@@ -45,7 +48,7 @@ export const useRecursive = ({
         })
     }
     recursive(data)
-    return { nodes, depths }
+    return { nodes, depths, parents, next, previous }
 }
 
 export const useNodeTree = ({
@@ -65,11 +68,11 @@ export const useNodeTree = ({
         forceUpdate()
     }
 
-    const { nodes, depths } = useRecursive({
+    const { nodes, depths, parents, next, previous } = useRecursive({
         data,
         collapsed,
         collapsedProp
     })
 
-    return { nodes, depths, collapser }
+    return { nodes, depths, parents, next, previous, collapser }
 }

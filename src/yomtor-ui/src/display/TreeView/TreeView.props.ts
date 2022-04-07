@@ -9,4 +9,5 @@ export type TreeViewProps<T = any> = DefaultProps & {
     highlightedProp?: string
     activedProp?: string
     collapsedProp?: string
+    indentWitdh?: number
 }

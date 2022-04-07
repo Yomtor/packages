@@ -8,7 +8,6 @@ import React, {
 import { DraggableStyles } from './Draggable.styles'
 import { DraggableProps } from './Draggable.props'
 import ReactDragable, { DraggableData, DraggableEvent } from 'react-draggable'
-import { useIntersectRect } from '../../uses/use-intersect-rect'
 
 /**
  * Description
@@ -53,6 +52,8 @@ export const Draggable: React.FC<DraggableProps> = ({
             ) as HTMLDivElement
             document.body.append(phantomRef.current)
 
+            updatePanthom()
+
             const transitionend = () => {
                 setAnimated(undefined)
                 phantomRef.current.remove()
@@ -70,12 +71,7 @@ export const Draggable: React.FC<DraggableProps> = ({
     }, [animated])
 
     const intersect = (target: HTMLElement) => {
-        return props.move && phantomRef.current
-            ? useIntersectRect(
-                  phantomRef.current.getBoundingClientRect(),
-                  target.getBoundingClientRect()
-              )
-            : true
+        return target.closest('[data-droppable]')
     }
 
     const startHandler = (_: DraggableEvent, data: DraggableData) => {
@@ -103,13 +99,9 @@ export const Draggable: React.FC<DraggableProps> = ({
                     detail: { ...props, mouseEvent: event }
                 })
             )
-            if (props.move) {
-                setAnimated(
-                    !(event.target as HTMLElement).closest('[data-droppable]')
-                )
-            } else {
-                setAnimated(undefined)
-            }
+            setAnimated(props.move ? false : undefined)
+        } else {
+            setAnimated(props.move ? true : undefined)
         }
 
         document.dispatchEvent(
