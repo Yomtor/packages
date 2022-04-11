@@ -7,7 +7,7 @@ import React, {
     useEffect
 } from 'react'
 import { TreeViewStyles } from './TreeView.styles'
-import { TreeViewProps } from './TreeView.props'
+import { TreeViewPositions, TreeViewProps } from './TreeView.props'
 import { TreeNode } from './TreeNode/TreeNode'
 import { TreeNodeData } from './TreeNode/TreeNode.props'
 import { ScrollArea } from '../../utils/ScrollArea'
@@ -15,12 +15,10 @@ import { useVirtual, VirtualItem } from 'react-virtual'
 import { isArray, isUndefined } from 'lodash'
 import { PlayIcon } from '../../icon/Play'
 import { useNodeTree } from './use-node-tree'
-import { useActiveds } from './use-activeds'
 import { Draggable as DraggableUtil } from '../../utils/Draggable/Draggable'
 import { Droppable } from '../../utils/Droppable/Droppable'
 import { DropEvent } from 'src/utils/Droppable/Droppable.props'
 
-type Positions = 'below' | 'above' | 'in'
 /**
  * Description
  */
@@ -47,24 +45,38 @@ export const TreeView: React.FC<TreeViewProps> = ({
     const dropInfo = useRef<{
         drag: TreeNodeData
         drop: TreeNodeData
-        position: Positions
+        position: TreeViewPositions
     }>()
 
     const [current, setCurrent] = useState<number>()
     const [target, setTarget] = useState<HTMLElement>()
     const [scrolling, setScrolling] = useState<boolean>(false)
-    const [position, setPosition] = useState<Positions>()
+    const [position, setPosition] = useState<TreeViewPositions>()
+    const [parentHighlighted, setParentHighlighted] = useState<number>()
 
     const { classes, cx } = TreeViewStyles(
         { ...props, indentWitdh },
         { name: 'TreeView', classNames }
     )
 
-    const { nodes, depths, parents, next, collapser } = useNodeTree({
+    const {
+        nodes,
+        depths,
+        parents,
+        highlighteds,
+        activeds,
+        childActiveds,
+        next,
+        collapser
+    } = useNodeTree({
         data,
         collapsed,
-        collapsedProp,
-        activedProp
+        position,
+        propsName: {
+            collapse: collapsedProp,
+            active: activedProp,
+            highlight: highlightedProp
+        }
     })
 
     const { totalSize, virtualItems } = useVirtual({
@@ -79,11 +91,6 @@ export const TreeView: React.FC<TreeViewProps> = ({
     ) {
         virtualItems.push(draggingItem.current)
     }
-
-    const { activeds, parentActiveds } = useActiveds(nodes, activedProp, [
-        click,
-        data
-    ])
 
     useEffect(() => {
         if (target) {
@@ -155,8 +162,11 @@ export const TreeView: React.FC<TreeViewProps> = ({
         const rect = target.getBoundingClientRect()
         const height = node.children ? 10 : rect.height / 2
         const y = props.mouseEvent.clientY
+
+        let position: TreeViewPositions = 'in'
+        let parent!: number
+
         distanceX.current += props.mouseEvent.movementX
-        let position: Positions = 'in'
 
         if (rect.top + height >= y) {
             position = 'above'
@@ -170,20 +180,25 @@ export const TreeView: React.FC<TreeViewProps> = ({
                 let indexX = Math.ceil(distanceX.current / indentWitdh) - 2
                 if (index > -1) {
                     indexX = Math.min(Math.max(indexX, 0), parents.length - 1)
-                    index = nodes.findIndex((node) => node === parents[indexX])
                 }
             } else if (depths[index + 1] > depths[index]) {
                 index = index + 1
             }
         }
 
+        if (parents[index]) {
+            parent = nodes.findIndex((node) => node === parents[index])
+        }
+
         setCurrent(index)
         setPosition(position)
+        setParentHighlighted(parent)
     }
 
     const mouseLeaveHandler = () => {
         setPosition(undefined)
         setCurrent(undefined)
+        setParentHighlighted(undefined)
     }
 
     const dragStartHandler = (item: VirtualItem) => {
@@ -195,6 +210,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
         console.log(dropInfo.current)
         setPosition(undefined)
         setCurrent(undefined)
+        setParentHighlighted(undefined)
     }
 
     const Draggable = useMemo(() => {
@@ -235,18 +251,13 @@ export const TreeView: React.FC<TreeViewProps> = ({
                                         <div
                                             className={cx(classes.node, {
                                                 [classes.highlighted]:
-                                                    node[highlightedProp] &&
-                                                    ![
-                                                        'below',
-                                                        'above'
-                                                    ].includes(position) &&
-                                                    !node[activedProp],
+                                                    highlighteds[item.index] ||
+                                                    parentHighlighted ===
+                                                        item.index,
                                                 [classes.actived]:
-                                                    activeds.includes(node),
+                                                    activeds[item.index],
                                                 [classes.parentActived]:
-                                                    parentActiveds.includes(
-                                                        node
-                                                    )
+                                                    childActiveds[item.index]
                                             })}
                                             {...childHandlers(node)}
                                         >
