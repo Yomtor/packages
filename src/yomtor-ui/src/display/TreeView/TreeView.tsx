@@ -50,7 +50,6 @@ export const TreeView: React.FC<TreeViewProps> = ({
 
     const [current, setCurrent] = useState<number>()
     const [target, setTarget] = useState<HTMLElement>()
-    const [scrolling, setScrolling] = useState<boolean>(false)
     const [position, setPosition] = useState<TreeViewPositions>()
     const [parentHighlighted, setParentHighlighted] = useState<number>()
 
@@ -130,13 +129,6 @@ export const TreeView: React.FC<TreeViewProps> = ({
         }
     })
 
-    const scrollHandler = () => {
-        setScrolling(true)
-    }
-    const scrollStopHandler = () => {
-        setScrolling(false)
-    }
-
     const getAllParents = (index: number, stack = [], first = true) => {
         const nextIndex =
             next[index] && nodes.findIndex((node) => node === next[index])
@@ -174,19 +166,23 @@ export const TreeView: React.FC<TreeViewProps> = ({
         if (rect.bottom - height <= y) {
             position = 'below'
 
-            const parents = getAllParents(index).reverse()
-            if (parents.length) {
-                parents.push(node)
+            const closets = getAllParents(index).reverse()
+            if (closets.length) {
+                closets.push(node)
                 let indexX = Math.ceil(distanceX.current / indentWitdh) - 2
-                if (index > -1) {
-                    indexX = Math.min(Math.max(indexX, 0), parents.length - 1)
+
+                if (indexX > -1) {
+                    indexX = Math.min(Math.max(indexX, 0), closets.length - 1)
+                    index = nodes.findIndex((node) => node === closets[indexX])
+                } else {
+                    index = nodes.findIndex((node) => node === closets[0])
                 }
             } else if (depths[index + 1] > depths[index]) {
                 index = index + 1
             }
         }
 
-        if (parents[index]) {
+        if (parents[index] && position !== 'in') {
             parent = nodes.findIndex((node) => node === parents[index])
         }
 
@@ -212,11 +208,6 @@ export const TreeView: React.FC<TreeViewProps> = ({
         setCurrent(undefined)
         setParentHighlighted(undefined)
     }
-
-    const Draggable = useMemo(() => {
-        if (!scrolling) return DraggableUtil
-        return ({ children }) => <>{children}</>
-    }, [scrolling])
 
     const viewport = useMemo(
         () => (
@@ -244,16 +235,16 @@ export const TreeView: React.FC<TreeViewProps> = ({
                             >
                                 {() => (
                                     <DraggableUtil
-                                        phantom
                                         move={false}
                                         onStart={() => dragStartHandler(item)}
+                                        data={node}
                                     >
                                         <div
                                             className={cx(classes.node, {
                                                 [classes.highlighted]:
-                                                    highlighteds[item.index] ||
                                                     parentHighlighted ===
-                                                        item.index,
+                                                        item.index ||
+                                                    highlighteds[item.index],
                                                 [classes.actived]:
                                                     activeds[item.index],
                                                 [classes.parentActived]:
@@ -336,7 +327,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
                 )}
             </div>
         ),
-        [virtualItems, click, data, hover, position]
+        [virtualItems, click, data, hover, position, parentHighlighted]
     )
 
     return (
@@ -345,13 +336,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
             className={classes.root}
             onMouseLeave={mouseLeaveHandler}
         >
-            <ScrollArea
-                ref={scrollRef}
-                onScroll={scrollHandler}
-                onScrollStop={scrollStopHandler}
-            >
-                {viewport}
-            </ScrollArea>
+            <ScrollArea ref={scrollRef}>{viewport}</ScrollArea>
         </div>
     )
 }

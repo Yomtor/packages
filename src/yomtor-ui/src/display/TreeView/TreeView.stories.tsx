@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { TreeView } from './TreeView'
 import { ComponentStory, ComponentMeta } from '@storybook/react'
 import { TreeObjectNode } from '../TreeObjectNode'
+import { Block } from '../../layout/Block/Block'
+import { Droppable } from '../../utils/Droppable/Droppable'
 
 export default {
     title: 'Atoms/Display/TreeView',
@@ -16,16 +18,36 @@ const Template: ComponentStory<typeof TreeView> = ({ ...props }) => {
     const [data, setData] = useState(props.data)
     return (
         <>
-            <div style={{ maxWidth: 400, maxHeight: 300 }}>
-                <TreeView
-                    {...props}
-                    data={data}
-                    nodeComponent={TreeObjectNode}
-                />
-            </div>
+            <Block>
+                <div style={{ maxWidth: 400, maxHeight: 500 }}>
+                    <TreeView
+                        {...props}
+                        data={data}
+                        nodeComponent={TreeObjectNode}
+                    />
+                </div>
+
+                <Droppable external onDrop={(event) => console.log(event)}>
+                    {(status) => (
+                        <div
+                            style={{
+                                height: 100,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderRadius: 5,
+                                background: status.overed
+                                    ? 'rgba(0, 255, 0, 0.4)'
+                                    : 'rgba(0, 0, 0, 0.9)'
+                            }}
+                        >
+                            Drop Me
+                        </div>
+                    )}
+                </Droppable>
+            </Block>
             <button
                 onClick={() => {
-                    console.log('a')
                     props.data[0].children[1].actived =
                         !props.data[0].children[1].actived
                     setData([...data])
