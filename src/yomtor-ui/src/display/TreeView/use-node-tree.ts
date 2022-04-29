@@ -8,13 +8,15 @@ type UseNodeTreeProps = {
     collapsed?: boolean
     position?: TreeViewPositions
     propsName?: { active?: string; collapse?: string; highlight?: string }
+    dragIndex?: number
 }
 
 export const useRecursive = ({
     data,
     collapsed,
     position,
-    propsName: { active, collapse, highlight }
+    propsName: { active, collapse, highlight },
+    dragIndex
 }: UseNodeTreeProps) => {
     let index = -1
     const nodes: TreeNodeData[] = []
@@ -25,12 +27,14 @@ export const useRecursive = ({
     const activeds: Record<number, TreeNodeData> = {}
     const childActiveds: Record<number, TreeNodeData> = {}
     const highlighteds: Record<number, TreeNodeData> = {}
+    const disableDrops: Record<number, TreeNodeData> = {}
 
     const recursive = (
         data: TreeNodeData[] = [],
         depth = 0,
         parent?: TreeNodeData,
-        actived?: boolean
+        actived?: boolean,
+        disableDrop?: boolean
     ) => {
         data.forEach((node, i) => {
             index++
@@ -45,6 +49,10 @@ export const useRecursive = ({
             if (actived) {
                 childActiveds[index] = node
             }
+            if (disableDrop) {
+                disableDrops[index] = node
+            }
+
             if (
                 node[highlight] &&
                 !node[active] &&
@@ -66,7 +74,8 @@ export const useRecursive = ({
                     node.children,
                     depth + 1,
                     node,
-                    actived || node[active]
+                    actived || node[active],
+                    disableDrop || index === dragIndex
                 )
             }
         })
@@ -81,7 +90,8 @@ export const useRecursive = ({
         childActiveds,
         highlighteds,
         next,
-        previous
+        previous,
+        disableDrops
     }
 }
 
@@ -89,7 +99,8 @@ export const useNodeTree = ({
     data,
     collapsed,
     position,
-    propsName: { collapse, ...others }
+    propsName: { collapse, ...others },
+    dragIndex
 }: UseNodeTreeProps) => {
     const [, forceUpdate] = useReducer((x) => x + 1, 0)
 
@@ -108,7 +119,8 @@ export const useNodeTree = ({
             data,
             collapsed,
             position,
-            propsName: { ...others, collapse }
+            propsName: { ...others, collapse },
+            dragIndex
         }),
         collapser
     }

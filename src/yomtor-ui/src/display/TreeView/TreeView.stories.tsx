@@ -63,6 +63,8 @@ export const Playground = Template.bind({})
 
 Playground.args = {
     collapsed: true,
+    sortable: true,
+    draggable: false,
     data: [
         {
             label: 'label - 00',

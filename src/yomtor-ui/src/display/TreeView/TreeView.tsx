@@ -32,11 +32,14 @@ export const TreeView: React.FC<TreeViewProps> = ({
     highlightedProp = 'highlighted',
     activedProp = 'actived',
     collapsedProp = 'collapsed',
+    sortable = true,
+    draggable = false,
     ...props
 }) => {
     const [hover, forceHover] = useReducer((x: number) => x + 1, 0)
     const [click, forceClick] = useReducer((x: number) => x + 1, 0)
 
+    const actives = useRef<TreeNodeData[]>([])
     const viewportRef = useRef<HTMLDivElement>()
     const scrollRef = useRef<HTMLDivElement>()
     const lineRef = useRef<HTMLDivElement>()
@@ -66,6 +69,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
         activeds,
         childActiveds,
         next,
+        disableDrops,
         collapser
     } = useNodeTree({
         data,
@@ -75,7 +79,8 @@ export const TreeView: React.FC<TreeViewProps> = ({
             collapse: collapsedProp,
             active: activedProp,
             highlight: highlightedProp
-        }
+        },
+        dragIndex: draggingItem.current?.index
     })
 
     const { totalSize, virtualItems } = useVirtual({
@@ -105,20 +110,30 @@ export const TreeView: React.FC<TreeViewProps> = ({
                     indentWitdh * (depths[current] + 1)
                 }px`
             }
-
             dropInfo.current = {
-                drag: nodes[draggingItem.current.index],
-                drop: nodes[current],
+                drag: draggingItem.current
+                    ? nodes[draggingItem.current.index]
+                    : undefined,
+                drop:
+                    !disableDrops[current] &&
+                    draggingItem.current?.index !== current &&
+                    current
+                        ? nodes[current]
+                        : undefined,
                 position
             }
         }
     }, [current, position])
 
+    const mouseDownHandler = (data: TreeNodeData) => {
+        console.log('aaa')
+        actives.current.forEach((item) => (item[activedProp] = false))
+        data[activedProp] = true
+        actives.current.push(data)
+        forceClick()
+    }
+
     const childHandlers = (data: TreeNodeData) => ({
-        onClick: () => {
-            data[activedProp] = !data[activedProp]
-            forceClick()
-        },
         onMouseEnter: () => {
             data[highlightedProp] = true
             forceHover()
@@ -204,10 +219,17 @@ export const TreeView: React.FC<TreeViewProps> = ({
 
     const dropHandler = () => {
         console.log(dropInfo.current)
+
+        draggingItem.current = undefined
         setPosition(undefined)
         setCurrent(undefined)
         setParentHighlighted(undefined)
     }
+
+    const Draggable = useMemo(() => {
+        if (sortable || draggable) return DraggableUtil
+        return ({ children }) => <>{children}</>
+    }, [sortable])
 
     const viewport = useMemo(
         () => (
@@ -218,6 +240,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
             >
                 {virtualItems.map((item) => {
                     const node = nodes[item.index]
+
                     return (
                         <div
                             key={item.index}
@@ -232,19 +255,30 @@ export const TreeView: React.FC<TreeViewProps> = ({
                                     dropMoveHandler(event, item.index)
                                 }
                                 onDrop={dropHandler}
+                                disabled={!sortable}
                             >
                                 {() => (
-                                    <DraggableUtil
-                                        move={false}
+                                    <Draggable
+                                        phantom={draggable}
+                                        move={draggable}
+                                        onMouseDown={() =>
+                                            mouseDownHandler(node)
+                                        }
                                         onStart={() => dragStartHandler(item)}
                                         data={node}
                                     >
                                         <div
                                             className={cx(classes.node, {
                                                 [classes.highlighted]:
-                                                    parentHighlighted ===
+                                                    (parentHighlighted ===
                                                         item.index ||
-                                                    highlighteds[item.index],
+                                                        highlighteds[
+                                                            item.index
+                                                        ]) &&
+                                                    !disableDrops[item.index] &&
+                                                    item.index !==
+                                                        draggingItem.current
+                                                            ?.index,
                                                 [classes.actived]:
                                                     activeds[item.index],
                                                 [classes.parentActived]:
@@ -316,18 +350,26 @@ export const TreeView: React.FC<TreeViewProps> = ({
                                             </div>
                                             <Node {...node} node={node} />
                                         </div>
-                                    </DraggableUtil>
+                                    </Draggable>
                                 )}
                             </Droppable>
                         </div>
                     )
                 })}
-                {position && position !== 'in' && (
+                {position && position !== 'in' && !disableDrops[current] && (
                     <div ref={lineRef} className={classes.line} />
                 )}
             </div>
         ),
-        [virtualItems, click, data, hover, position, parentHighlighted]
+        [
+            virtualItems,
+            click,
+            data,
+            hover,
+            position,
+            parentHighlighted,
+            disableDrops
+        ]
     )
 
     return (

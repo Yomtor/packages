@@ -12,4 +12,6 @@ export type TreeViewProps<T = any> = DefaultProps & {
     activedProp?: string
     collapsedProp?: string
     indentWitdh?: number
+    sortable?: boolean
+    draggable?: boolean
 }
