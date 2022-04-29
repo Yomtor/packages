@@ -12,7 +12,7 @@ import { TreeNode } from './TreeNode/TreeNode'
 import { TreeNodeData } from './TreeNode/TreeNode.props'
 import { ScrollArea } from '../../utils/ScrollArea'
 import { useVirtual, VirtualItem } from 'react-virtual'
-import { isArray, isUndefined } from 'lodash'
+import { isArray, isUndefined, uniqBy } from 'lodash'
 import { PlayIcon } from '../../icon/Play'
 import { useNodeTree } from './use-node-tree'
 import { Draggable as DraggableUtil } from '../../utils/Draggable/Draggable'
@@ -34,16 +34,18 @@ export const TreeView: React.FC<TreeViewProps> = ({
     collapsedProp = 'collapsed',
     sortable = true,
     draggable = false,
+    multiple = false,
     ...props
 }) => {
     const [hover, forceHover] = useReducer((x: number) => x + 1, 0)
     const [click, forceClick] = useReducer((x: number) => x + 1, 0)
 
-    const actives = useRef<TreeNodeData[]>([])
     const viewportRef = useRef<HTMLDivElement>()
     const scrollRef = useRef<HTMLDivElement>()
     const lineRef = useRef<HTMLDivElement>()
-    const draggingItem = useRef<VirtualItem>()
+    const items = useRef<{ [key: number]: VirtualItem }>({})
+    const last = useRef<VirtualItem>()
+
     const distanceX = useRef<number>(0)
     const dropInfo = useRef<{
         drag: TreeNodeData
@@ -80,20 +82,20 @@ export const TreeView: React.FC<TreeViewProps> = ({
             active: activedProp,
             highlight: highlightedProp
         },
-        dragIndex: draggingItem.current?.index
+        items: items.current
     })
 
-    const { totalSize, virtualItems } = useVirtual({
+    let { totalSize, virtualItems } = useVirtual({
         size: nodes.length,
         estimateSize: useCallback(() => nodeHeight, []),
         parentRef: scrollRef
     })
 
-    if (
-        draggingItem.current &&
-        !virtualItems.find((item) => item.index === draggingItem.current.index)
-    ) {
-        virtualItems.push(draggingItem.current)
+    if (Object.keys(items.current).length) {
+        virtualItems = uniqBy(
+            virtualItems.concat(Object.values(items.current)),
+            'index'
+        )
     }
 
     useEffect(() => {
@@ -110,14 +112,19 @@ export const TreeView: React.FC<TreeViewProps> = ({
                     indentWitdh * (depths[current] + 1)
                 }px`
             }
+
             dropInfo.current = {
-                drag: draggingItem.current
-                    ? nodes[draggingItem.current.index]
+                drag: Object.keys(items.current).length
+                    ? Object.keys(items.current).map((index) => nodes[index])
                     : undefined,
                 drop:
+                    !isUndefined(current) &&
                     !disableDrops[current] &&
-                    draggingItem.current?.index !== current &&
-                    current
+                    !(
+                        Object.keys(items.current).includes(
+                            current.toString()
+                        ) && position === 'in'
+                    )
                         ? nodes[current]
                         : undefined,
                 position
@@ -125,12 +132,72 @@ export const TreeView: React.FC<TreeViewProps> = ({
         }
     }, [current, position])
 
-    const mouseDownHandler = (data: TreeNodeData) => {
-        console.log('aaa')
-        actives.current.forEach((item) => (item[activedProp] = false))
-        data[activedProp] = true
-        actives.current.push(data)
+    const mouseDownHandler = (event: MouseEvent, item: VirtualItem) => {
+        if (
+            !multiple ||
+            (!event.shiftKey &&
+                !event.metaKey &&
+                !Object.keys(items.current).includes(item.index.toString()))
+        ) {
+            Object.keys(items.current).forEach(
+                (index) => (nodes[index][activedProp] = false)
+            )
+            items.current = {}
+        }
+
+        if (
+            event.metaKey &&
+            multiple &&
+            Object.keys(items.current).includes(item.index.toString())
+        ) {
+            nodes[item.index][activedProp] = false
+            delete items.current[item.index]
+        } else if (
+            event.shiftKey &&
+            multiple &&
+            Object.keys(items.current).length
+        ) {
+            const max = Math.max(...[last.current.index, item.index])
+            const min = Math.min(...[last.current.index, item.index])
+            Array(max - min + 1)
+                .fill(0)
+                .forEach((_, i) => {
+                    items.current[i + min] = {
+                        ...item,
+                        index: i + min
+                    }
+                })
+        } else {
+            items.current[item.index] = item
+            last.current = item
+        }
+
+        Object.keys(items.current).forEach(
+            (index) => (nodes[index][activedProp] = true)
+        )
+
         forceClick()
+    }
+
+    const mouseUpHandler = (event: React.MouseEvent, item: VirtualItem) => {
+        if (multiple && !event.shiftKey && !event.metaKey && !position) {
+            Object.keys(items.current).forEach(
+                (index) => (nodes[index][activedProp] = false)
+            )
+            items.current = {}
+
+            items.current[item.index] = item
+
+            Object.keys(items.current).forEach(
+                (index) => (nodes[index][activedProp] = true)
+            )
+
+            forceClick()
+        }
+
+        setPosition(undefined)
+        setCurrent(undefined)
+        setParentHighlighted(undefined)
     }
 
     const childHandlers = (data: TreeNodeData) => ({
@@ -214,16 +281,13 @@ export const TreeView: React.FC<TreeViewProps> = ({
 
     const dragStartHandler = (item: VirtualItem) => {
         distanceX.current = 0
-        draggingItem.current = item
+        // draggingItem.current = item
     }
 
     const dropHandler = () => {
         console.log(dropInfo.current)
 
-        draggingItem.current = undefined
-        setPosition(undefined)
-        setCurrent(undefined)
-        setParentHighlighted(undefined)
+        // items.current = {}
     }
 
     const Draggable = useMemo(() => {
@@ -249,6 +313,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
                             style={{
                                 transform: `translateY(${item.start}px)`
                             }}
+                            onMouseUp={(event) => mouseUpHandler(event, item)}
                         >
                             <Droppable
                                 onMove={(event) =>
@@ -261,11 +326,13 @@ export const TreeView: React.FC<TreeViewProps> = ({
                                     <Draggable
                                         phantom={draggable}
                                         move={draggable}
-                                        onMouseDown={() =>
-                                            mouseDownHandler(node)
+                                        onMouseDown={(event) =>
+                                            mouseDownHandler(event, item)
                                         }
                                         onStart={() => dragStartHandler(item)}
-                                        data={node}
+                                        data={Object.keys(items.current).map(
+                                            (index) => data[index]
+                                        )}
                                     >
                                         <div
                                             className={cx(classes.node, {
@@ -276,9 +343,11 @@ export const TreeView: React.FC<TreeViewProps> = ({
                                                             item.index
                                                         ]) &&
                                                     !disableDrops[item.index] &&
-                                                    item.index !==
-                                                        draggingItem.current
-                                                            ?.index,
+                                                    !Object.keys(
+                                                        items.current
+                                                    ).includes(
+                                                        item.index.toString()
+                                                    ),
                                                 [classes.actived]:
                                                     activeds[item.index],
                                                 [classes.parentActived]:

@@ -8,7 +8,7 @@ type UseNodeTreeProps = {
     collapsed?: boolean
     position?: TreeViewPositions
     propsName?: { active?: string; collapse?: string; highlight?: string }
-    dragIndex?: number
+    items?: { [key: number]: TreeNodeData }
 }
 
 export const useRecursive = ({
@@ -16,7 +16,7 @@ export const useRecursive = ({
     collapsed,
     position,
     propsName: { active, collapse, highlight },
-    dragIndex
+    items
 }: UseNodeTreeProps) => {
     let index = -1
     const nodes: TreeNodeData[] = []
@@ -75,7 +75,7 @@ export const useRecursive = ({
                     depth + 1,
                     node,
                     actived || node[active],
-                    disableDrop || index === dragIndex
+                    disableDrop || Object.keys(items).includes(index.toString())
                 )
             }
         })
@@ -100,7 +100,7 @@ export const useNodeTree = ({
     collapsed,
     position,
     propsName: { collapse, ...others },
-    dragIndex
+    items
 }: UseNodeTreeProps) => {
     const [, forceUpdate] = useReducer((x) => x + 1, 0)
 
@@ -120,7 +120,7 @@ export const useNodeTree = ({
             collapsed,
             position,
             propsName: { ...others, collapse },
-            dragIndex
+            items
         }),
         collapser
     }

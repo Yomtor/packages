@@ -14,4 +14,5 @@ export type TreeViewProps<T = any> = DefaultProps & {
     indentWitdh?: number
     sortable?: boolean
     draggable?: boolean
+    multiple?: boolean
 }

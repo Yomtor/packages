@@ -65,6 +65,7 @@ Playground.args = {
     collapsed: true,
     sortable: true,
     draggable: false,
+    multiple: false,
     data: [
         {
             label: 'label - 00',
