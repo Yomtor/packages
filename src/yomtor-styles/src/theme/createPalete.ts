@@ -137,15 +137,15 @@ light = {
         lightest: '#414141',
         light: '#414141',
         main: '#242424',
-        dark: '#242424',
-        darkest: '#FFFFF'
+        strong: '#242424',
+        strongest: '#FFFFF'
     },
     background: {
         lightest: '#E3E3E3',
         light: '#F2F2F2',
         main: '#EEEEEE',
-        dark: '#FFFFFF',
-        darkest: '#FFFFFF'
+        strong: '#FFFFFF',
+        strongest: '#FFFFFF'
     },
     divider: 'rgba(0, 0, 0, 0.15)',
     action: {
@@ -169,15 +169,15 @@ dark = {
         lightest: '#E3E3E3',
         light: '#E3E3E3',
         main: '#E3E3E3',
-        dark: '#F2F2F2',
-        darkest: '#B6B6B6'
+        strong: '#F2F2F2',
+        strongest: '#B6B6B6'
     },
     background: {
         lightest: '#3A3941',
         light: '#2B2A30',
         main: '#242329',
-        dark: '#1F1E24',
-        darkest: '#16151A'
+        strong: '#1F1E24',
+        strongest: '#16151A'
     },
     secondary: {
         lightest: grey[20],

@@ -1,2 +1,2 @@
 export * from './createSvgIcon'
-export * from './cursorUtils'
+export { default as cursorUtils } from './cursorUtils'

@@ -14,8 +14,8 @@ export const Yomtor_LEVELS = [
     'lightest',
     'light',
     'main',
-    'dark',
-    'darkest'
+    'strong',
+    'strongest'
 ] as const
 export type YomtorLevels = typeof Yomtor_LEVELS[number]
 
