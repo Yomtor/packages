@@ -10,7 +10,7 @@
   },
   "scripts": {
     "storybook": "esno scripts/storybook-start",
-    "examples": "cd examples && FAST_REFRESH=false react-app-rewired start",
+    "examples": "cd examples && FAST_REFRESH=false react-scripts start",
     "generate": "esno scripts/generate.js"
   },
   "devDependencies": {
@@ -33,7 +33,6 @@
     "babel-eslint": "^10.0.3",
     "babel-loader": "^8.2.3",
     "cross-env": "^7.0.2",
-    "customize-cra": "^1.0.0",
     "eslint": "^7.11.0",
     "eslint-config-prettier": "^6.7.0",
     "eslint-config-standard": "^14.1.0",
@@ -51,7 +50,6 @@
     "microbundle": "^0.13.3",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.0.4",
-    "react-app-rewired": "^2.2.1",
     "react-scripts": "^5.0.1",
     "storybook-dark-mode": "^1.0.8",
     "typescript": "^3.7.5"
