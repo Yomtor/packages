@@ -1,0 +1,36 @@
+Arguments: 
+  /Users/yerko/.nvm/versions/node/v14.18.2/bin/node /usr/local/bin/yarn init
+
+PATH: 
+  /Users/yerko/.nvm/versions/node/v14.18.2/bin:/usr/local/opt/node@10/bin:/Users/yerko/.composer/vendor/bin:/usr/local/sbin:/Applications/MAMP/bin/php/php7.4.21/bin:/Applications/MAMP/bin/php/php7.4.21/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/go/bin:/usr/local/share/dotnet:/opt/X11/bin:~/.dotnet/tools:/Library/Apple/usr/bin:/Library/Frameworks/Mono.framework/Versions/Current/Commands:/Applications/MAMP/Library/bin:/Applications/Visual Studio Code.app/Contents/Resources/app/bin:/Users/yerko/Library/Android/sdk/tools:/Users/yerko/Library/Android/sdk/platform-tools:/Applications/Android Studio.app/Contents/gradle/gradle-4.4/bin
+
+Yarn version: 
+  1.22.10
+
+Node version: 
+  14.18.2
+
+Platform: 
+  darwin x64
+
+Trace: 
+  Error: canceled
+      at Interface.<anonymous> (/usr/local/lib/node_modules/yarn/lib/cli.js:136216:13)
+      at Interface.emit (events.js:400:28)
+      at Interface._ttyWrite (readline.js:1001:16)
+      at ReadStream.onkeypress (readline.js:265:10)
+      at ReadStream.emit (events.js:400:28)
+      at emitKeys (internal/readline/utils.js:358:14)
+      at emitKeys.next (<anonymous>)
+      at ReadStream.onData (readline.js:1270:36)
+      at ReadStream.emit (events.js:400:28)
+      at addChunk (internal/streams/readable.js:293:12)
+
+npm manifest: 
+  No manifest
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile

@@ -1,0 +1,37 @@
+{
+    "name": "@yomtor/styles",
+    "version": "1.0.0",
+    "description": "Yomtor css-in-js styles engine, based on emotion",
+    "main": "cjs/index.js",
+    "module": "esm/index.js",
+    "types": "lib/index.d.ts",
+    "license": "MIT",
+    "author": "Sergio Caballero<scaballero@yomyer.com>",
+    "sideEffects": false,
+    "homepage": "https://yomtor.dev",
+    "repository": {
+        "url": "https://github.com/yomyer/yomtor.git",
+        "type": "git",
+        "directory": "packages/styles"
+    },
+    "scripts": {
+        "build": "microbundle --css-modules false --no-compress --format es,cjs",
+        "start": "microbundle watch --css-modules false --no-compress --format es",
+        "test": "jest --watchAll"
+    },
+    "peerDependencies": {
+        "react": ">=16.8.0",
+        "react-dom": ">=16.8.0"
+    },
+    "dependencies": {
+        "@emotion/cache": "^11.7.1",
+        "@emotion/react": "^11.7.1",
+        "@emotion/serialize": "^1.0.2",
+        "@emotion/utils": "^1.0.0",
+        "clsx": "^1.1.1",
+        "csstype": "^3.0.9",
+        "lodash": "^4.17.21",
+        "microbundle": "^0.15.0",
+        "ts-jest": "^27.1.3"
+    }
+}

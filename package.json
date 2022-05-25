@@ -9,10 +9,13 @@
     "url": "https://github.com/yomyer/yomtor.git"
   },
   "scripts": {
+    "start": "lerna run --parallel start",
     "storybook": "esno scripts/storybook-start",
-    "examples": "cd examples && FAST_REFRESH=false react-scripts start",
     "generate": "esno scripts/generate.js"
   },
+  "workspaces": [
+    "packages/*"
+  ],
   "devDependencies": {
     "@babel/core": "^7.16.7",
     "@storybook/addon-actions": "^6.4.9",
@@ -47,6 +50,7 @@
     "generate-template-files": "^3.2.0",
     "gh-pages": "^2.2.0",
     "jest": "^27.5.1",
+    "lerna": "^4.0.0",
     "microbundle": "^0.13.3",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.0.4",

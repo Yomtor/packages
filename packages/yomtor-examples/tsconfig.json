@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./",
+    "outDir": "lib",
+    "jsx": "react",
+    "esModuleInterop": true,
+    "paths": {
+      "@yomtor/styles": ["./../packages/yomtor-styles"]
+    }
+  },
+  "references": [{ "path": "../yomtor-styles" }]
+}

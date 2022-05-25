@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.base.json",
   "include": [
-    "./src/yomtor-*/src",
+    "./packages/yomtor-*/src",
     "./types",
     "./docs/src",
     "./scripts",
@@ -15,15 +15,15 @@
     "configuration/jest",
     "configuration/storybook/main.js",
     "node_modules",
-    "src/yomtor-paper/",
-    "src/yomtor-*/scripts/**/*",
-    "src/yomtor-*/esm/**/*",
-    "src/yomtor-*/lib/**/*",
-    "src/yomtor-*/cjs/**/*"
+    "packages/yomtor-paper/",
+    "packages/yomtor-*/scripts/**/*",
+    "packages/yomtor-*/esm/**/*",
+    "packages/yomtor-*/lib/**/*",
+    "packages/yomtor-*/cjs/**/*"
   ],
   "compilerOptions": {
     "paths": {
-      "@yomtor/*": ["src/yomtor-*/src"]
+      "@yomtor/*": ["packages/yomtor-*/src"]
     }
   }
 }
